@@ -195,9 +195,9 @@
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span id="bottomPlayerName" class="player-name">You</span>
               
-              <!-- Draw Offer Notification Badge -->
-              <div id="drawOfferPrompt" class="hidden" style="display: flex; gap: 4px; align-items: center; background: #fffbeb; border: 1px solid var(--yellow); padding: 2px 6px; border-radius: 4px; font-size: 11px;">
-                <span>Draw offered!</span>
+              <!-- Draw Offer Prompt on Left Side -->
+              <div id="drawOfferPrompt" class="hidden" style="gap: 6px; align-items: center; background: #fffbeb; border: 1px solid var(--yellow); padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                <span>Draw offered?</span>
                 <button style="padding: 2px 6px; font-size: 10px;" onclick="acceptDraw()">Accept</button>
                 <button class="secondary" style="padding: 2px 6px; font-size: 10px;" onclick="declineDraw()">Decline</button>
               </div>
@@ -399,8 +399,7 @@
     renderMatchesList();
     updateLeaderboard();
     
-    // Check match status or spectating state
-    if (spectatingMatchId && allMatches[spectatingMatchId]) {
+    if (isSpectator && spectatingMatchId && allMatches[spectatingMatchId]) {
       syncSpectatorBoard(allMatches[spectatingMatchId]);
     } else {
       checkPlayerMatchAssignment();
@@ -411,7 +410,7 @@
   // FAIR PLAY PROTECTION (ALT-TAB PROTECTION)
   // ==========================================
   document.addEventListener('visibilitychange', () => {
-    if (!playerId || isSpectator || spectatingMatchId || !activeMatchId || !activeMatchData) return;
+    if (!playerId || isSpectator || !activeMatchId || !activeMatchData) return;
     if (activeMatchData.status !== 'Live') return;
 
     if (document.hidden) {
@@ -509,11 +508,7 @@
     document.getElementById('authSection').classList.add('hidden');
 
     updatePlayerLobbyUI();
-
-    if (isTournamentStarted && !isTournamentOver()) {
-      db.ref('players/' + playerId).update({ status: 'searching' });
-      attemptAutoMatchmaking();
-    }
+    // Note: Players remain in 'idle' mode. Matches won't auto-start until Host clicks "Kickoff Tournament".
   }
 
   function enterSpectatorOnly() {
@@ -654,9 +649,6 @@
 
   function checkPlayerMatchAssignment() {
     if (!playerId || isSpectator) return;
-    
-    // Prevent redirecting away while spectating
-    if (spectatingMatchId) return;
 
     let assignedMatch = null;
     let matchId = null;
@@ -685,6 +677,12 @@
     tabStrikes = 0;
     if (timerInterval) clearInterval(timerInterval);
     
+    // Reset Draw UI elements
+    document.getElementById('drawOfferPrompt').classList.add('hidden');
+    const offerBtn = document.getElementById('offerDrawBtn');
+    offerBtn.textContent = 'Offer Draw';
+    offerBtn.disabled = false;
+
     db.ref('players/' + playerId).update({ status: 'idle' });
 
     document.getElementById('arena').classList.add('hidden');
@@ -707,7 +705,6 @@
     document.getElementById('arena').classList.remove('hidden');
     document.getElementById('spectatorBanner').classList.add('hidden');
     document.getElementById('resignBtn').classList.remove('hidden');
-    document.getElementById('offerDrawBtn').classList.remove('hidden');
     document.getElementById('exitSpectatorBtn').classList.add('hidden');
 
     document.getElementById('topPlayerName').textContent = playerColor === 'white' ? matchData.blackName : matchData.whiteName;
@@ -758,7 +755,7 @@
 
     board.position(game.fen());
 
-    // Clear pending draw offers automatically upon taking a move
+    // Clears draw offer on move execution
     db.ref('matches/' + activeMatchId).update({
       fen: game.fen(),
       whiteTime: activeMatchData.whiteTime,
@@ -820,12 +817,10 @@
 
     if (matchData.drawOfferedBy) {
       if (matchData.drawOfferedBy !== playerColor) {
-        // The opponent offered a draw
         promptEl.classList.remove('hidden');
         offerBtn.textContent = 'Offer Draw';
         offerBtn.disabled = false;
       } else {
-        // Current player offered a draw
         promptEl.classList.add('hidden');
         offerBtn.textContent = 'Draw Offered';
         offerBtn.disabled = true;
@@ -906,27 +901,29 @@
   }
 
   // ==========================================
-  // FIXED DRAW OFFER LOGIC
+  // DRAW OFFER LOGIC
   // ==========================================
   function offerDraw() {
     if (!activeMatchId || !activeMatchData || activeMatchData.status !== 'Live') return;
 
     const currentOffer = activeMatchData.drawOfferedBy;
-    
     if (currentOffer) {
       if (currentOffer === playerColor) {
         alert('You have already offered a draw.');
-        return;
       } else {
-        // The other player already offered a draw; this mutual offer auto-draws
         acceptDraw();
-        return;
       }
+      return;
     }
 
+    activeMatchData.drawOfferedBy = playerColor;
     db.ref(`matches/${activeMatchId}`).update({
       drawOfferedBy: playerColor
     });
+
+    const btn = document.getElementById('offerDrawBtn');
+    btn.textContent = 'Draw Offered';
+    btn.disabled = true;
   }
 
   function acceptDraw() {
@@ -948,7 +945,7 @@
   }
 
   // ==========================================
-  // LIVE SPECTATOR MODE & GO-BACK FIX
+  // LIVE SPECTATOR MODE
   // ==========================================
   function spectateMatch(matchId) {
     spectatingMatchId = matchId;
@@ -959,11 +956,8 @@
     document.getElementById('arena').classList.remove('hidden');
     document.getElementById('spectatorBanner').classList.remove('hidden');
     document.getElementById('spectatorMatchId').textContent = matchId.substr(0, 12);
-    
-    // Hide player controls while in spectate view
     document.getElementById('resignBtn').classList.add('hidden');
     document.getElementById('offerDrawBtn').classList.add('hidden');
-    document.getElementById('drawOfferPrompt').classList.add('hidden');
     document.getElementById('exitSpectatorBtn').classList.remove('hidden');
 
     document.getElementById('topPlayerName').textContent = matchData.blackName;
@@ -998,17 +992,9 @@
 
   function closeSpectatorView() {
     spectatingMatchId = null;
-    document.getElementById('spectatorBanner').classList.add('hidden');
-    document.getElementById('exitSpectatorBtn').classList.add('hidden');
-
-    // Return to player game if user is in an active match
-    if (playerId && activeMatchId && allMatches[activeMatchId] && allMatches[activeMatchId].status === 'Live') {
-      setupMatch(activeMatchId, allMatches[activeMatchId]);
-    } else {
-      document.getElementById('arena').classList.add('hidden');
-      document.getElementById('lobby').classList.remove('hidden');
-      updatePlayerLobbyUI();
-    }
+    document.getElementById('offerDrawBtn').classList.remove('hidden');
+    document.getElementById('arena').classList.add('hidden');
+    document.getElementById('lobby').classList.remove('hidden');
   }
 
   function renderMatchesList() {
