@@ -1,1 +1,1 @@
-# chess-arena
+# DICT chess-arena
