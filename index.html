@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess Arena | Live Tournament Platform</title>
+  <title>DICT Digital Chess Sportsfest 2026</title>
 
   <!-- External Libraries CSS & JS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
@@ -17,73 +17,91 @@
 
   <style>
     :root { 
-      --bg: #111411; 
-      --panel: #1c211d; 
-      --panel2: #252c26; 
-      --green: #81b64c; 
-      --green-dark: #457520;
-      --text: #f0f2ed; 
-      --text-muted: #a0a89e;
-      --border: #343c35; 
-      --red: #e66a6a; 
-      --yellow: #f5c518;
-      --gold: #ffd700;
-      --silver: #c0c0c0;
-      --bronze: #cd7f32;
+      --bg: #f4f6f9; 
+      --panel: #ffffff; 
+      --panel2: #f0f4f9; 
+      --dict-blue: #0032a0; 
+      --dict-blue-dark: #002270; 
+      --dict-red: #bf0d3e; 
+      --dict-yellow: #d8af00;
+      --text: #1f2937; 
+      --text-muted: #6b7280;
+      --border: #d1d5db; 
+      --red: #bf0d3e; 
+      --yellow: #d8af00;
+      --gold: #d97706;
+      --silver: #6b7280;
+      --bronze: #b45309;
     }
     
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
     
     button, input, select { font: inherit; padding: 11px 14px; border-radius: 6px; border: 0; outline: none; }
-    button { background: var(--green); color: #14200d; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+    button { background: var(--dict-blue); color: #ffffff; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
     button.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
     button.danger { background: var(--red); color: #fff; }
     button:hover { filter: brightness(1.15); transform: translateY(-1px); }
     button:active { transform: translateY(0); }
     button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
     
-    input, select { background: #121713; border: 1px solid var(--border); color: var(--text); width: 100%; }
-    input:focus, select:focus { border-color: var(--green); }
+    input, select { background: #ffffff; border: 1px solid var(--border); color: var(--text); width: 100%; }
+    input:focus, select:focus { border-color: var(--dict-blue); }
     label { display: block; color: var(--text-muted); margin: 8px 0 4px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
     .layout { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .full { grid-column: 1 / -1; }
     
-    .header-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .brand { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; margin: 0; }
-    .brand span { color: var(--green); }
+    /* Header Card & Edge-to-Edge Banner Styling */
+    .header-card { 
+      padding: 0; 
+      overflow: hidden; 
+      border: 1px solid var(--border); 
+      border-radius: 10px; 
+      background: #ffffff; 
+      width: 100%;
+    }
+
+    .header-banner-img { 
+      width: 100%; 
+      max-width: 100%;
+      height: auto; 
+      display: block; 
+      object-fit: fill; 
+    }
     
-    .badge { font-size: 13px; font-weight: bold; background: #111411; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; }
-    .badge.green { border-color: var(--green); color: var(--green); }
-    .badge.red { border-color: var(--red); color: var(--red); }
-    .badge.yellow { border-color: var(--yellow); color: var(--yellow); }
+    .header-status-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #ffffff; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+    
+    .badge { font-size: 13px; font-weight: bold; background: #ffffff; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+    .badge.green { border-color: #10b981; color: #047857; background: #ecfdf5; }
+    .badge.red { border-color: var(--red); color: var(--red); background: #fef2f2; }
+    .badge.yellow { border-color: var(--yellow); color: var(--yellow); background: #fffbeb; }
 
     .arena { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 15px; }
-    #board { width: 100%; max-width: 440px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    #board { width: 100%; max-width: 440px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 2px solid var(--dict-blue); }
     
     .player-card { background: var(--panel2); padding: 12px 16px; border-radius: 8px; width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
     .player-info { display: flex; flex-direction: column; gap: 2px; }
-    .player-name { font-weight: bold; font-size: 15px; }
+    .player-name { font-weight: bold; font-size: 15px; color: var(--dict-blue-dark); }
     .player-status-tag { font-size: 11px; color: var(--text-muted); }
     
-    .clock { font-size: 20px; font-family: monospace; font-weight: bold; background: #111411; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-muted); min-width: 80px; text-align: center; }
-    .clock.active { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px rgba(129, 182, 76, 0.2); }
-    .clock.low { border-color: var(--red); color: var(--red); animation: pulse 1s infinite; }
+    .clock { font-size: 20px; font-family: monospace; font-weight: bold; background: #ffffff; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); color: var(--text); min-width: 80px; text-align: center; }
+    .clock.active { border-color: var(--dict-blue); color: var(--dict-blue); box-shadow: 0 0 10px rgba(0, 50, 160, 0.2); background: #eff6ff; }
+    .clock.low { border-color: var(--red); color: var(--red); animation: pulse 1s infinite; background: #fef2f2; }
     
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    .highlight-sq { background-color: rgba(255, 255, 0, 0.4) !important; }
+    .highlight-sq { background-color: rgba(216, 175, 0, 0.4) !important; }
     .stack { display: flex; flex-direction: column; gap: 10px; }
     .row { display: flex; gap: 10px; align-items: center; }
     .scroll { overflow: auto; max-height: 280px; border-radius: 6px; border: 1px solid var(--border); }
     
-    table { width: 100%; border-collapse: collapse; text-align: left; background: var(--panel2); }
-    th { background: #151a16; padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; sticky: top; }
-    td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; background: #ffffff; }
+    th { background: #f3f4f6; padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; sticky: top; border-bottom: 2px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); }
     tr:last-child td { border-bottom: 0; }
-    tr:hover { background: rgba(255,255,255,0.02); }
+    tr:hover { background: #f9fafb; }
 
     .rank-badge { font-weight: bold; }
     .rank-1 { color: var(--gold); }
@@ -91,22 +109,20 @@
     .rank-3 { color: var(--bronze); }
 
     .strike-counter { display: inline-flex; gap: 4px; }
-    .strike-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); border: 1px solid #444; }
+    .strike-dot { width: 10px; height: 10px; border-radius: 50%; background: #e5e7eb; border: 1px solid #d1d5db; }
     .strike-dot.active { background: var(--red); border-color: var(--red); box-shadow: 0 0 6px var(--red); }
 
-    /* Modal Overlay for Warning Banner */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
-    .modal { background: var(--panel); border: 2px solid var(--red); border-radius: 12px; padding: 24px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(230, 106, 106, 0.3); }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+    .modal { background: #ffffff; border: 2px solid var(--red); border-radius: 12px; padding: 24px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
     .modal h3 { color: var(--red); margin-top: 0; font-size: 20px; }
     
     .hidden { display: none !important; }
     .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
-    .tag-live { background: rgba(129, 182, 76, 0.2); color: var(--green); border: 1px solid var(--green); }
-    .tag-done { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+    .tag-live { background: #ecfdf5; color: #047857; border: 1px solid #10b981; }
+    .tag-done { background: #f3f4f6; color: var(--text-muted); border: 1px solid var(--border); }
 
     @media (max-width: 768px) {
       .layout { grid-template-columns: 1fr; padding: 10px; gap: 12px; }
-      .header-bar { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -129,15 +145,15 @@
   </div>
 
   <div class="layout">
-    <!-- Header Bar -->
-    <div class="panel full header-bar">
-      <div>
-        <h2 class="brand">♟ CHESS<span>ARENA</span></h2>
-        <span style="font-size: 12px; color: var(--text-muted);">Realtime Tournament & Matchmaking Platform</span>
-      </div>
-      <div class="row">
-        <div id="statusBadge" class="badge green">🟢 Lobby Open</div>
-        <div id="roleBadge" class="badge">Not Signed In</div>
+    <!-- Header Banner Image & Status Bar -->
+    <div class="full header-card">
+      <img src="banner.png" alt="DICT Digital Chess Sportsfest 2026" class="header-banner-img">
+      <div class="header-status-bar">
+        <span style="font-size: 13px; font-weight: 600; color: var(--dict-blue-dark);">Department of Information and Communications Technology</span>
+        <div class="row">
+          <div id="statusBadge" class="badge green">🟢 Lobby Open</div>
+          <div id="roleBadge" class="badge">Not Signed In</div>
+        </div>
       </div>
     </div>
 
@@ -145,29 +161,23 @@
     <div id="mainArenaPanel" class="panel full hidden">
       <!-- Player Lobby / Matchmaker View -->
       <div id="lobby" style="text-align: center; padding: 15px 10px;">
-        <h3 style="margin-top:0;">Welcome, <span id="displayName" style="color:var(--green);"></span>!</h3>
+        <h3 style="margin-top:0;">Welcome, <span id="displayName" style="color:var(--dict-blue);"></span>!</h3>
         <p id="queueStatusText" style="color: var(--text-muted); max-width: 500px; margin: 0 auto 15px;">
-          The tournament host will launch Round 1 soon. Once the kickoff starts, click below to enter the queue.
+          The tournament host has not started the tournament yet. Please wait...
         </p>
 
         <div id="playerActionArea" class="stack" style="max-width: 320px; margin: 0 auto;">
-          <div class="row">
-            <select id="timeControlSelect">
-              <option value="3+2">3+2 Blitz</option>
-              <option value="15+10">15+10 Rapid</option>
-            </select>
-          </div>
-          <button id="findMatchBtn" onclick="toggleMatchQueue()">🔍 Find Next Opponent</button>
+          <button id="findMatchBtn" class="hidden" onclick="toggleMatchQueue()">🔍 Find Next Opponent</button>
         </div>
       </div>
 
-      <!-- Live Chessboard Area (Active Match or Spectator Mode) -->
+      <!-- Live Chessboard Area -->
       <div id="arena" class="arena hidden">
         <div id="spectatorBanner" class="badge yellow hidden" style="margin-bottom: 5px;">
           👁️ SPECTATOR MODE — Watching Match Live (<span id="spectatorMatchId">--</span>)
         </div>
 
-        <!-- Top Player Card (Black / Opponent) -->
+        <!-- Top Player Card -->
         <div class="player-card">
           <div class="player-info">
             <span id="topPlayerName" class="player-name">Opponent</span>
@@ -179,7 +189,7 @@
         <!-- Interactive Board -->
         <div id="board"></div>
 
-        <!-- Bottom Player Card (White / You) -->
+        <!-- Bottom Player Card -->
         <div class="player-card">
           <div class="player-info">
             <span id="bottomPlayerName" class="player-name">You</span>
@@ -193,7 +203,7 @@
           <div id="bottomClock" class="clock">--:--</div>
         </div>
 
-        <!-- Control Actions -->
+        <!-- Actions -->
         <div class="row" style="margin-top: 5px;">
           <button id="resignBtn" class="danger" onclick="resignMatch()">Resign Match</button>
           <button id="exitSpectatorBtn" class="secondary hidden" onclick="closeSpectatorView()">Exit Spectator Mode</button>
@@ -201,17 +211,19 @@
       </div>
     </div>
 
-    <!-- Panel 1: Player Sign-In / Spectator Quick Join -->
+    <!-- Panel 1: Player Sign-In -->
     <div class="panel" id="authSection">
       <h3>♟ Player Entry</h3>
       <div id="authPanel" class="stack">
         <div id="registrationOpenBox">
+          <label>Email Address (unique player identity)</label>
+          <input id="playerEmail" type="email" placeholder="you@example.com" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
           <label>Display Name</label>
-          <input id="playerName" placeholder="Enter your full name or handle" maxlength="20">
+          <input id="playerName" placeholder="Enter your full name or handle" maxlength="40" autocomplete="name">
           <button style="margin-top: 10px; width: 100%;" onclick="registerPlayer()">Enter Waiting Lobby</button>
         </div>
 
-        <div id="registrationClosedBox" class="hidden" style="background: rgba(230, 106, 106, 0.1); border: 1px solid var(--red); padding: 12px; border-radius: 6px; text-align: center;">
+        <div id="registrationClosedBox" class="hidden" style="background: #fef2f2; border: 1px solid var(--red); padding: 12px; border-radius: 6px; text-align: center;">
           <p style="color: var(--red); margin: 0 0 8px 0; font-weight: bold;">🔒 Registration Is Locked</p>
           <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">Late sign-ins are closed. You can watch live matches as a Spectator!</p>
           <button class="secondary" style="width: 100%;" onclick="enterSpectatorOnly()">Enter Spectator Mode</button>
@@ -223,22 +235,44 @@
     <div class="panel">
       <h3>⚙ Host Admin Dashboard</h3>
       <div class="stack">
-        <div style="background: #121713; padding: 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 13px; color: var(--text-muted);">Grace Period Clock:</span>
-          <span id="graceTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--yellow);">OFF</span>
+        <div id="hostLoginBox" class="stack" style="background:var(--panel2);padding:12px;border-radius:6px;border:1px solid var(--border);">
+          <label>Host/Admin Password</label>
+          <input id="hostPasswordInput" type="password" placeholder="Enter host password" autocomplete="current-password">
+          <button class="secondary" onclick="unlockHostControls()">Unlock Host Controls</button>
+          <small style="color:var(--text-muted)">Host controls are locked by default on this page.</small>
         </div>
+        <div id="hostControlsLockedNotice" class="badge red">🔒 Host controls locked</div>
+        <div id="hostControlsArea" class="stack hidden">
+          <div style="background: var(--panel2); padding: 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap:8px; flex-wrap:wrap;">
+            <span style="font-size: 13px; color: var(--text-muted);">Grace Period:</span>
+            <span id="graceTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--yellow);">OFF</span>
+            <span style="font-size: 13px; color: var(--text-muted);">Tournament time remaining:</span>
+            <span id="tournamentTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--dict-blue);">Not started</span>
+          </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <button class="secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
-          <button class="secondary" onclick="toggleRegistrationLock()" id="lockToggleBtn">🔒 Lock Registration</button>
+          <label>Host Match Format / Time Control</label>
+          <select id="timeControlSelect">
+            <option value="3+2">3+2 Blitz (3 mins + 2s increment)</option>
+            <option value="15+10">15+10 Rapid (15 mins + 10s increment)</option>
+          </select>
+
+          <label>Tournament Duration (minutes)</label>
+          <input id="tournamentDurationMinutes" type="number" min="1" max="1440" value="120">
+          <small style="color:var(--text-muted)">When time expires, new games and moves are blocked.</small>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
+            <button class="secondary" onclick="toggleRegistrationLock()" id="lockToggleBtn">🔒 Lock Registration</button>
+          </div>
+
+          <button onclick="kickoffTournament()" style="background: var(--dict-blue); color: white;">🚀 Kickoff Tournament</button>
+          <button class="danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
+          <button class="secondary" onclick="lockHostControls()">🔒 Lock Host Controls</button>
         </div>
-
-        <button onclick="kickoffTournament()" style="background: var(--green-dark); color: white;">🚀 Kickoff Tournament (Round 1)</button>
-        <button class="danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
       </div>
     </div>
 
-    <!-- Panel 3: Live Tournament Matches & Spectator Selector -->
+    <!-- Panel 3: Live Tournament Matches -->
     <div class="panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="margin:0;">👁️ Live Matches (<span id="activeMatchCount">0</span>)</h3>
@@ -261,7 +295,8 @@
 
     <!-- Panel 4: Live Tournament Leaderboard -->
     <div class="panel">
-      <h3 style="margin-top:0; margin-bottom: 10px;">🏆 Leaderboard (Ranked Standings)</h3>
+      <h3 style="margin-top:0; margin-bottom: 6px;">🏆 Leaderboard (Ranked Standings)</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">Top 8 ranked players mark round-robin qualifiers.</p>
       <div class="scroll">
         <table>
           <thead>
@@ -313,6 +348,9 @@
   let selectedSquare = null;
   let timerInterval = null;
   let graceTimerInterval = null;
+  let tournamentTimerInterval = null;
+  let hostControlsUnlocked = false;
+  const HOST_ADMIN_PASSWORD = '1101';
 
   let tabStrikes = 0;
   let isTournamentStarted = false;
@@ -330,8 +368,14 @@
     isRegistrationLocked = !!globalSettings.registrationLocked;
     isTournamentStarted = !!globalSettings.tournamentStarted;
     
+    if (globalSettings.timeControl) {
+      document.getElementById('timeControlSelect').value = globalSettings.timeControl;
+    }
+
     updateSystemStatusUI();
     handleGraceTimerSync(globalSettings.graceTimerEnd);
+    handleTournamentTimerSync(globalSettings.tournamentEndTime);
+    updatePlayerLobbyUI();
   });
 
   db.ref('players').on('value', snapshot => {
@@ -352,21 +396,17 @@
   });
 
   // ==========================================
-  // FAIR PLAY PROTECTION (ALT-TAB STRIKE SYSTEM)
+  // FAIR PLAY PROTECTION (ALT-TAB PROTECTION)
   // ==========================================
   document.addEventListener('visibilitychange', () => {
-    // Only monitor if the player is in a active live game
     if (!playerId || isSpectator || !activeMatchId || !activeMatchData) return;
     if (activeMatchData.status !== 'Live') return;
 
     if (document.hidden) {
       tabStrikes++;
-      
-      // Update strikes counter in Firebase for opponent visibility
       db.ref(`matches/${activeMatchId}/${playerColor}Strikes`).set(tabStrikes);
 
       if (tabStrikes >= 3) {
-        // 3rd Strike: Instant Forfeiture
         const winnerResult = playerColor === 'white' ? '0-1' : '1-0';
         db.ref(`matches/${activeMatchId}`).update({
           status: 'Completed',
@@ -376,7 +416,6 @@
         alert('❌ DISQUALIFIED: You have reached 3 tab-switch strikes. Your match has been forfeited.');
         dismissWarningModal();
       } else {
-        // Display Warning Banner/Modal
         document.getElementById('modalStrikeText').textContent = `Strike ${tabStrikes} of 3`;
         document.getElementById('warningModal').classList.remove('hidden');
         updateStrikeDotsUI(tabStrikes);
@@ -395,32 +434,74 @@
   }
 
   // ==========================================
-  // REGISTRATION & SPECTATOR HANDLERS
+  // RETURNING PLAYER AUTO-FILL & ENTRY
   // ==========================================
+  function checkReturningPlayer(emailVal) {
+    const email = emailVal.trim().toLowerCase();
+    if (!email) return;
+
+    const existingPlayerKey = Object.keys(allPlayers).find(
+      id => (allPlayers[id].email || '').toLowerCase() === email
+    );
+
+    if (existingPlayerKey) {
+      const existingPlayer = allPlayers[existingPlayerKey];
+      document.getElementById('playerName').value = existingPlayer.name;
+    }
+  }
+
   function registerPlayer() {
     const nameInput = document.getElementById('playerName');
     const name = nameInput.value.trim();
+    const emailInput = document.getElementById('playerEmail');
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return alert('Please enter a valid email address.');
+    }
     if (!name) return alert('Please enter a display name.');
+
+    if (isTournamentOver()) {
+      return alert('The tournament has ended. Registration and games are closed.');
+    }
 
     if (isRegistrationLocked) {
       return alert('Registration is currently locked by the host.');
     }
 
-    playerNameStr = name;
-    playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+    const existingId = Object.keys(allPlayers).find(
+      id => (allPlayers[id].email || '').toLowerCase() === email
+    );
+
+    if (existingId) {
+      playerId = existingId;
+      playerNameStr = name;
+      db.ref('players/' + playerId).update({ name: name, status: 'idle' });
+    } else {
+      playerNameStr = name;
+      playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+      db.ref('players/' + playerId).set({
+        name: name,
+        email: email,
+        status: 'idle',
+        joinedAt: Date.now()
+      });
+    }
+
     isSpectator = false;
 
-    document.getElementById('displayName').textContent = name;
-    document.getElementById('roleBadge').textContent = 'Player: ' + name;
+    document.getElementById('displayName').textContent = playerNameStr;
+    document.getElementById('roleBadge').textContent = 'Player: ' + playerNameStr;
     document.getElementById('roleBadge').className = 'badge green';
     document.getElementById('mainArenaPanel').classList.remove('hidden');
     document.getElementById('authSection').classList.add('hidden');
 
-    db.ref('players/' + playerId).set({
-      name: name,
-      status: 'idle',
-      joinedAt: Date.now()
-    });
+    updatePlayerLobbyUI();
+
+    if (isTournamentStarted && !isTournamentOver()) {
+      db.ref('players/' + playerId).update({ status: 'searching' });
+      attemptAutoMatchmaking();
+    }
   }
 
   function enterSpectatorOnly() {
@@ -442,18 +523,61 @@
     const openBox = document.getElementById('registrationOpenBox');
     const closedBox = document.getElementById('registrationClosedBox');
 
-    if (isRegistrationLocked) {
+    if (isTournamentOver()) {
+      statusBadge.textContent = '🏁 Tournament Ended';
+      statusBadge.className = 'badge red';
+      if (lockToggleBtn) {
+        lockToggleBtn.textContent = '🔒 Tournament Ended';
+        lockToggleBtn.disabled = true;
+      }
+      openBox.classList.add('hidden');
+      closedBox.classList.remove('hidden');
+    } else if (isRegistrationLocked) {
+      if (lockToggleBtn) {
+        lockToggleBtn.disabled = false;
+        lockToggleBtn.textContent = '🔓 Unlock Registration';
+      }
       statusBadge.textContent = '🔒 Registration Locked';
       statusBadge.className = 'badge red';
-      lockToggleBtn.textContent = '🔓 Unlock Registration';
       openBox.classList.add('hidden');
       closedBox.classList.remove('hidden');
     } else {
+      if (lockToggleBtn) {
+        lockToggleBtn.disabled = false;
+        lockToggleBtn.textContent = '🔒 Lock Registration';
+      }
       statusBadge.textContent = '🟢 Lobby Open';
       statusBadge.className = 'badge green';
-      lockToggleBtn.textContent = '🔒 Lock Registration';
       openBox.classList.remove('hidden');
       closedBox.classList.add('hidden');
+    }
+  }
+
+  function updatePlayerLobbyUI() {
+    if (!playerId || isSpectator) return;
+
+    const findBtn = document.getElementById('findMatchBtn');
+    const statusTxt = document.getElementById('queueStatusText');
+
+    if (isTournamentOver()) {
+      findBtn.classList.add('hidden');
+      statusTxt.textContent = '🏁 The tournament duration has ended. No further games can be started.';
+      return;
+    }
+
+    if (!isTournamentStarted) {
+      findBtn.classList.add('hidden');
+      statusTxt.textContent = '⏳ The tournament host has not started the tournament yet. You will automatically be paired once the host clicks "Kickoff Tournament".';
+    } else {
+      findBtn.classList.remove('hidden');
+      const playerStatus = allPlayers[playerId]?.status;
+      if (playerStatus === 'searching') {
+        findBtn.textContent = '⏳ Searching Opponent... (Click to Cancel)';
+        statusTxt.textContent = 'Searching for an available player in queue...';
+      } else {
+        findBtn.textContent = '🔍 Find Next Opponent';
+        statusTxt.textContent = 'Match concluded. Click below to queue up for your next game!';
+      }
     }
   }
 
@@ -462,23 +586,24 @@
   // ==========================================
   function toggleMatchQueue() {
     if (!playerId || isSpectator) return;
+    if (!isTournamentStarted) return alert('The host has not started the tournament yet.');
+    if (isTournamentOver()) return alert('The tournament duration has ended.');
 
     const currentStatus = allPlayers[playerId]?.status;
 
     if (currentStatus === 'searching') {
       db.ref('players/' + playerId).update({ status: 'idle' });
-      document.getElementById('findMatchBtn').textContent = '🔍 Find Next Opponent';
-      document.getElementById('queueStatusText').textContent = 'Matchmaking cancelled. Click when ready to search.';
     } else {
       db.ref('players/' + playerId).update({ status: 'searching' });
-      document.getElementById('findMatchBtn').textContent = '⏳ Searching Opponent... (Click to Cancel)';
-      document.getElementById('queueStatusText').textContent = 'Searching for an available player in queue...';
       attemptAutoMatchmaking();
     }
+    updatePlayerLobbyUI();
   }
 
   function attemptAutoMatchmaking() {
-    const tc = document.getElementById('timeControlSelect').value;
+    if (isTournamentOver() || !isTournamentStarted) return;
+    
+    const tc = globalSettings.timeControl || '3+2';
 
     for (let id in allPlayers) {
       if (id !== playerId && allPlayers[id].status === 'searching') {
@@ -548,8 +673,7 @@
 
     document.getElementById('arena').classList.add('hidden');
     document.getElementById('lobby').classList.remove('hidden');
-    document.getElementById('findMatchBtn').textContent = '🔍 Find Next Opponent';
-    document.getElementById('queueStatusText').textContent = 'Match concluded. Click below to queue up for your next game!';
+    updatePlayerLobbyUI();
   }
 
   // ==========================================
@@ -602,10 +726,14 @@
   }
 
   function executeMove(from, to) {
+    if (isTournamentOver()) {
+      alert('Tournament time has expired. Moves are disabled.');
+      return false;
+    }
+    if (!activeMatchData || activeMatchData.status !== 'Live') return false;
     const move = game.move({ from: from, to: to, promotion: 'q' });
     if (!move) return false;
 
-    // Apply Time Increment
     const inc = activeMatchData.timeControl === '15+10' ? 10 : 2;
     if (playerColor === 'white') activeMatchData.whiteTime += inc;
     else activeMatchData.blackTime += inc;
@@ -671,7 +799,7 @@
     if (timerInterval) clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
-      if (!activeMatchData || game.game_over()) return;
+      if (!activeMatchData || game.game_over() || isTournamentOver() || activeMatchData.status !== 'Live') return;
 
       if (game.turn() === 'w') {
         activeMatchData.whiteTime = Math.max(0, activeMatchData.whiteTime - 1);
@@ -736,7 +864,7 @@
   }
 
   // ==========================================
-  // LIVE SPECTATOR / SCREENING MODE
+  // LIVE SPECTATOR MODE
   // ==========================================
   function spectateMatch(matchId) {
     spectatingMatchId = matchId;
@@ -757,7 +885,7 @@
     game.load(matchData.fen);
 
     board = Chessboard('board', {
-      draggable: false, // Read-only mode
+      draggable: false,
       position: matchData.fen,
       orientation: 'white',
       pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
@@ -811,9 +939,73 @@
   }
 
   // ==========================================
-  // HOST CONTROLS & GRACE PERIOD
+  // HOST ACCESS & TOURNAMENT KICKOFF
   // ==========================================
+  function unlockHostControls() {
+    const entered = document.getElementById('hostPasswordInput').value;
+    if (entered !== HOST_ADMIN_PASSWORD) {
+      alert('Incorrect host/admin password.');
+      document.getElementById('hostPasswordInput').value = '';
+      return;
+    }
+    hostControlsUnlocked = true;
+    document.getElementById('hostControlsArea').classList.remove('hidden');
+    document.getElementById('hostControlsLockedNotice').classList.add('hidden');
+    document.getElementById('hostLoginBox').classList.add('hidden');
+    document.getElementById('roleBadge').textContent = 'Host/Admin Controls Unlocked';
+    document.getElementById('roleBadge').className = 'badge yellow';
+  }
+
+  function lockHostControls() {
+    hostControlsUnlocked = false;
+    document.getElementById('hostControlsArea').classList.add('hidden');
+    document.getElementById('hostControlsLockedNotice').classList.remove('hidden');
+    document.getElementById('hostLoginBox').classList.remove('hidden');
+    document.getElementById('hostPasswordInput').value = '';
+  }
+
+  function requireHostAccess() {
+    if (!hostControlsUnlocked) {
+      alert('Host/admin controls are locked. Enter the host password first.');
+      return false;
+    }
+    return true;
+  }
+
+  function isTournamentOver() {
+    return !!globalSettings.tournamentEnded ||
+      (!!globalSettings.tournamentEndTime && Date.now() >= Number(globalSettings.tournamentEndTime));
+  }
+
+  function handleTournamentTimerSync(endTime) {
+    if (tournamentTimerInterval) clearInterval(tournamentTimerInterval);
+    const display = document.getElementById('tournamentTimerDisplay');
+    if (!endTime) {
+      display.textContent = globalSettings.tournamentEnded ? 'ENDED' : 'Not started';
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((Number(endTime) - Date.now()) / 1000));
+      display.textContent = remaining > 0 ? formatTime(remaining) : 'ENDED';
+      if (remaining <= 0 && !globalSettings.tournamentEnded) {
+        db.ref('settings').update({ tournamentEnded: true, registrationLocked: true });
+        db.ref('matches').once('value').then(snapshot => {
+          const matches = snapshot.val() || {};
+          const updates = {};
+          Object.keys(matches).forEach(id => {
+            if (matches[id].status === 'Live') updates['matches/' + id + '/status'] = 'Closed - Time Expired';
+          });
+          if (Object.keys(updates).length) db.ref().update(updates);
+        });
+      }
+    };
+    tick();
+    tournamentTimerInterval = setInterval(tick, 1000);
+  }
+
   function startGracePeriod() {
+    if (!requireHostAccess()) return;
+    if (isTournamentOver()) return alert('The tournament has ended.');
     const graceEndTime = Date.now() + (5 * 60 * 1000);
     db.ref('settings').update({
       graceTimerEnd: graceEndTime,
@@ -844,19 +1036,23 @@
   }
 
   function toggleRegistrationLock() {
+    if (!requireHostAccess()) return;
     db.ref('settings').update({
       registrationLocked: !isRegistrationLocked
     });
   }
 
   function kickoffTournament() {
+    if (!requireHostAccess()) return;
+    if (isTournamentOver()) return alert('This tournament has ended. Reset data before starting a new tournament.');
+
     const waitingPlayers = [];
     for (let id in allPlayers) {
       waitingPlayers.push({ id: id, name: allPlayers[id].name });
     }
 
     if (waitingPlayers.length < 2) {
-      return alert('At least 2 registered players are required to kickoff Round 1.');
+      return alert('At least 2 registered players are required to kickoff the tournament.');
     }
 
     const tc = document.getElementById('timeControlSelect').value;
@@ -891,16 +1087,26 @@
       updates['/players/' + black.id + '/status'] = 'in-game';
     }
 
+    const durationMinutes = Number(document.getElementById('tournamentDurationMinutes').value);
+    if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
+      return alert('Tournament duration must be between 1 and 1440 minutes.');
+    }
+
+    updates['/settings/timeControl'] = tc;
     updates['/settings/registrationLocked'] = true;
     updates['/settings/tournamentStarted'] = true;
+    updates['/settings/tournamentEnded'] = false;
+    updates['/settings/tournamentDurationMinutes'] = durationMinutes;
+    updates['/settings/tournamentEndTime'] = Date.now() + durationMinutes * 60 * 1000;
 
     db.ref().update(updates, err => {
       if (err) alert('Kickoff failed: ' + err.message);
-      else alert('🚀 Round 1 pairings launched and registration locked!');
+      else alert('🚀 Tournament kicked off! Live pairings launched.');
     });
   }
 
   function resetTournamentData() {
+    if (!requireHostAccess()) return;
     if (!confirm('⚠️ Are you sure you want to wipe all matches, leaderboard scores, and player statuses?')) return;
     db.ref('matches').remove();
     db.ref('settings').remove();
@@ -910,7 +1116,7 @@
   }
 
   // ==========================================
-  // LIVE RANKED LEADERBOARD (1st to Last)
+  // LIVE RANKED LEADERBOARD
   // ==========================================
   function updateLeaderboard() {
     let stats = {};
@@ -918,6 +1124,7 @@
     for (let id in allPlayers) {
       stats[id] = {
         name: allPlayers[id].name,
+        email: allPlayers[id].email || '',
         points: 0,
         played: 0,
         wins: 0,
@@ -932,8 +1139,8 @@
         const wId = m.whiteId;
         const bId = m.blackId;
 
-        if (!stats[wId]) stats[wId] = { name: m.whiteName, points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
-        if (!stats[bId]) stats[bId] = { name: m.blackName, points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
+        if (!stats[wId]) stats[wId] = { name: m.whiteName, email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
+        if (!stats[bId]) stats[bId] = { name: m.blackName, email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
 
         stats[wId].played++;
         stats[bId].played++;
@@ -968,7 +1175,7 @@
 
       return `<tr>
         <td class="rank-badge ${rankClass}">${rankDisplay}</td>
-        <td><strong>${p.name}</strong></td>
+        <td><strong>${p.name}</strong><br><small style="color:var(--text-muted)">${p.email || 'Email unavailable'}</small>${index < 8 ? '<br><span class="tag tag-live">TOP 8 QUALIFIER</span>' : ''}</td>
         <td><strong>${p.points} pts</strong></td>
         <td>${p.played}</td>
         <td>${p.wins}W / ${p.draws}D / ${p.losses}L</td>
