@@ -82,7 +82,7 @@
     #board { width: 100%; max-width: 440px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 2px solid var(--dict-blue); }
     
     .player-card { background: var(--panel2); padding: 12px 16px; border-radius: 8px; width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
-    .player-info { display: flex; flex-direction: column; gap: 2px; }
+    .player-info { display: flex; flex-direction: column; gap: 4px; }
     .player-name { font-weight: bold; font-size: 15px; color: var(--dict-blue-dark); }
     .player-status-tag { font-size: 11px; color: var(--text-muted); }
     
@@ -108,7 +108,7 @@
     .rank-2 { color: var(--silver); }
     .rank-3 { color: var(--bronze); }
 
-    .strike-counter { display: inline-flex; gap: 4px; }
+    .strike-counter { display: inline-flex; gap: 4px; align-items: center; }
     .strike-dot { width: 10px; height: 10px; border-radius: 50%; background: #e5e7eb; border: 1px solid #d1d5db; }
     .strike-dot.active { background: var(--red); border-color: var(--red); box-shadow: 0 0 6px var(--red); }
 
@@ -192,7 +192,17 @@
         <!-- Bottom Player Card -->
         <div class="player-card">
           <div class="player-info">
-            <span id="bottomPlayerName" class="player-name">You</span>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span id="bottomPlayerName" class="player-name">You</span>
+              
+              <!-- Left side Draw Offer Prompt -->
+              <div id="drawOfferPrompt" class="hidden" style="display: flex; gap: 4px; align-items: center; background: #fffbeb; border: 1px solid var(--yellow); padding: 2px 6px; border-radius: 4px; font-size: 11px;">
+                <span>Draw offered?</span>
+                <button style="padding: 2px 6px; font-size: 10px;" onclick="acceptDraw()">Accept</button>
+                <button class="secondary" style="padding: 2px 6px; font-size: 10px;" onclick="declineDraw()">Decline</button>
+              </div>
+            </div>
+
             <div id="strikeIndicator" class="strike-counter" title="Tab-Switch Strikes">
               <span class="player-status-tag">FairPlay: </span>
               <div class="strike-dot" id="dot1"></div>
@@ -205,6 +215,7 @@
 
         <!-- Actions -->
         <div class="row" style="margin-top: 5px;">
+          <button id="offerDrawBtn" class="secondary" onclick="offerDraw()">Offer Draw</button>
           <button id="resignBtn" class="danger" onclick="resignMatch()">Resign Match</button>
           <button id="exitSpectatorBtn" class="secondary hidden" onclick="closeSpectatorView()">Exit Spectator Mode</button>
         </div>
@@ -625,6 +636,7 @@
           status: 'Live',
           whiteStrikes: 0,
           blackStrikes: 0,
+          drawOfferedBy: null,
           createdAt: Date.now()
         };
 
@@ -723,6 +735,7 @@
     });
 
     startClock();
+    syncGameState(matchData);
   }
 
   function executeMove(from, to) {
@@ -740,12 +753,14 @@
 
     board.position(game.fen());
 
+    // Clears pending draw offer on every move
     db.ref('matches/' + activeMatchId).update({
       fen: game.fen(),
       whiteTime: activeMatchData.whiteTime,
       blackTime: activeMatchData.blackTime,
       lastMoveAt: Date.now(),
-      lastMoveBy: playerId
+      lastMoveBy: playerId,
+      drawOfferedBy: null
     });
 
     checkGameOver();
@@ -792,6 +807,26 @@
       game.load(matchData.fen);
       board.position(matchData.fen);
       checkGameOver();
+    }
+
+    // Dynamic Draw Offer UI handling
+    const promptEl = document.getElementById('drawOfferPrompt');
+    const offerBtn = document.getElementById('offerDrawBtn');
+
+    if (matchData.drawOfferedBy) {
+      if (matchData.drawOfferedBy !== playerColor) {
+        promptEl.classList.remove('hidden');
+        offerBtn.textContent = 'Offer Draw';
+        offerBtn.disabled = false;
+      } else {
+        promptEl.classList.add('hidden');
+        offerBtn.textContent = 'Draw Offered';
+        offerBtn.disabled = true;
+      }
+    } else {
+      promptEl.classList.add('hidden');
+      offerBtn.textContent = 'Offer Draw';
+      offerBtn.disabled = false;
     }
   }
 
@@ -864,6 +899,49 @@
   }
 
   // ==========================================
+  // DRAW OFFER LOGIC
+  // ==========================================
+  function offerDraw() {
+    if (!activeMatchId || !activeMatchData || activeMatchData.status !== 'Live') return;
+
+    const currentOffer = activeMatchData.drawOfferedBy;
+    if (currentOffer) {
+      if (currentOffer === playerColor) {
+        alert('You have already offered a draw.');
+      } else {
+        acceptDraw();
+      }
+      return;
+    }
+
+    db.ref(`matches/${activeMatchId}`).update({
+      drawOfferedBy: playerColor
+    });
+
+    const btn = document.getElementById('offerDrawBtn');
+    btn.textContent = 'Draw Offered';
+    btn.disabled = true;
+  }
+
+  function acceptDraw() {
+    if (!activeMatchId || activeMatchData?.status !== 'Live') return;
+
+    db.ref(`matches/${activeMatchId}`).update({
+      status: 'Completed',
+      result: '1/2-1/2',
+      drawOfferedBy: null
+    });
+  }
+
+  function declineDraw() {
+    if (!activeMatchId) return;
+
+    db.ref(`matches/${activeMatchId}`).update({
+      drawOfferedBy: null
+    });
+  }
+
+  // ==========================================
   // LIVE SPECTATOR MODE
   // ==========================================
   function spectateMatch(matchId) {
@@ -876,6 +954,7 @@
     document.getElementById('spectatorBanner').classList.remove('hidden');
     document.getElementById('spectatorMatchId').textContent = matchId.substr(0, 12);
     document.getElementById('resignBtn').classList.add('hidden');
+    document.getElementById('offerDrawBtn').classList.add('hidden');
     document.getElementById('exitSpectatorBtn').classList.remove('hidden');
 
     document.getElementById('topPlayerName').textContent = matchData.blackName;
@@ -910,6 +989,7 @@
 
   function closeSpectatorView() {
     spectatingMatchId = null;
+    document.getElementById('offerDrawBtn').classList.remove('hidden');
     document.getElementById('arena').classList.add('hidden');
     document.getElementById('lobby').classList.remove('hidden');
   }
@@ -1080,6 +1160,7 @@
         status: 'Live',
         whiteStrikes: 0,
         blackStrikes: 0,
+        drawOfferedBy: null,
         createdAt: Date.now()
       };
 
