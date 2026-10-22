@@ -383,6 +383,11 @@
   let playerColor = 'white';
   let selectedSquare = null;
   let timerInterval = null;
+  let gameOverCountdownInterval = null;
+  let lastClockTickAt = 0;
+  let matchmakingInProgress = false;
+  let lastMatchesListSignature = '';
+  let lastLeaderboardSignature = '';
   let graceTimerInterval = null;
   let tournamentTimerInterval = null;
   let hostControlsUnlocked = false;
@@ -415,21 +420,49 @@
     updatePlayerLobbyUI();
   });
 
-  db.ref('players').on('value', snapshot => {
-    allPlayers = snapshot.val() || {};
+  // Child listeners avoid downloading the entire collection after every single
+  // player or match update. The initial load still reads existing records once.
+  const playersRef = db.ref('players');
+  playersRef.on('child_added', snapshot => {
+    allPlayers[snapshot.key] = snapshot.val() || {};
     updateLeaderboard();
+    updatePlayerLobbyUI();
+  });
+  playersRef.on('child_changed', snapshot => {
+    allPlayers[snapshot.key] = snapshot.val() || {};
+    updateLeaderboard();
+    updatePlayerLobbyUI();
+    // The status write is asynchronous; start matching after Firebase confirms
+    // that this player's queue status has arrived locally.
+    if (snapshot.key === playerId && allPlayers[playerId]?.status === 'searching') {
+      attemptAutoMatchmaking();
+    }
+  });
+  playersRef.on('child_removed', snapshot => {
+    delete allPlayers[snapshot.key];
+    updateLeaderboard();
+    updatePlayerLobbyUI();
   });
 
-  db.ref('matches').on('value', snapshot => {
-    allMatches = snapshot.val() || {};
+  const matchesRef = db.ref('matches');
+  function handleMatchRecordChange(snapshot) {
+    allMatches[snapshot.key] = snapshot.val() || {};
     renderMatchesList();
     updateLeaderboard();
-    
+
     if (isSpectator && spectatingMatchId && allMatches[spectatingMatchId]) {
       syncSpectatorBoard(allMatches[spectatingMatchId]);
     } else {
       checkPlayerMatchAssignment();
     }
+  }
+  matchesRef.on('child_added', handleMatchRecordChange);
+  matchesRef.on('child_changed', handleMatchRecordChange);
+  matchesRef.on('child_removed', snapshot => {
+    delete allMatches[snapshot.key];
+    renderMatchesList();
+    updateLeaderboard();
+    if (activeMatchId === snapshot.key) returnToLobby();
   });
 
   // ==========================================
@@ -633,43 +666,49 @@
   }
 
   function attemptAutoMatchmaking() {
-    if (isTournamentOver() || !isTournamentStarted) return;
-    
+    if (matchmakingInProgress || isTournamentOver() || !isTournamentStarted || !playerId) return;
+    if (allPlayers[playerId]?.status !== 'searching') return;
+
     const tc = globalSettings.timeControl || '3+2';
+    const opponentEntry = Object.entries(allPlayers).find(([id, player]) =>
+      id !== playerId && player && player.status === 'searching'
+    );
+    if (!opponentEntry) return;
 
-    for (let id in allPlayers) {
-      if (id !== playerId && allPlayers[id].status === 'searching') {
-        const opponent = allPlayers[id];
+    const [opponentId, opponent] = opponentEntry;
+    const matchId = 'match_' + db.ref('matches').push().key;
+    const now = Date.now();
+    const initialSeconds = tc === '15+10' ? 900 : 180;
+    const initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const matchPayload = {
+      whiteId: opponentId,
+      whiteName: opponent.name || 'Player',
+      blackId: playerId,
+      blackName: playerNameStr || 'Player',
+      fen: initialFen,
+      whiteTime: initialSeconds,
+      blackTime: initialSeconds,
+      timeControl: tc,
+      status: 'Live',
+      whiteStrikes: 0,
+      blackStrikes: 0,
+      drawOfferedBy: null,
+      createdAt: now,
+      lastMoveAt: now
+    };
 
-        const matchId = 'match_' + Date.now();
-        const initialSeconds = tc === '15+10' ? 900 : 180;
-        const initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-
-        const matchPayload = {
-          whiteId: id,
-          whiteName: opponent.name,
-          blackId: playerId,
-          blackName: playerNameStr,
-          fen: initialFen,
-          whiteTime: initialSeconds,
-          blackTime: initialSeconds,
-          timeControl: tc,
-          status: 'Live',
-          whiteStrikes: 0,
-          blackStrikes: 0,
-          drawOfferedBy: null,
-          createdAt: Date.now()
-        };
-
-        let updates = {};
-        updates['/matches/' + matchId] = matchPayload;
-        updates['/players/' + playerId + '/status'] = 'in-game';
-        updates['/players/' + id + '/status'] = 'in-game';
-
-        db.ref().update(updates);
-        return;
+    matchmakingInProgress = true;
+    const updates = {};
+    updates['/matches/' + matchId] = matchPayload;
+    updates['/players/' + playerId + '/status'] = 'in-game';
+    updates['/players/' + opponentId + '/status'] = 'in-game';
+    db.ref().update(updates, error => {
+      matchmakingInProgress = false;
+      if (error) {
+        console.error('Matchmaking failed:', error);
+        db.ref('players/' + playerId).update({ status: 'searching' });
       }
-    }
+    });
   }
 
   function checkPlayerMatchAssignment() {
@@ -693,7 +732,23 @@
         syncGameState(assignedMatch);
       }
     } else if (activeMatchId) {
-      returnToLobby();
+      const finishedMatch = allMatches[activeMatchId];
+      if (finishedMatch && finishedMatch.status !== 'Live') {
+        // Keep the game-over message visible instead of instantly sending players
+        // back to the lobby when Firebase broadcasts the completed result.
+        if (!isGameOverHandled) {
+          isGameOverHandled = true;
+          let message = '🏁 MATCH ENDED';
+          if (finishedMatch.result === '1-0') message = '🏆 White wins!';
+          else if (finishedMatch.result === '0-1') message = '🏆 Black wins!';
+          else if (finishedMatch.result === '1/2-1/2') message = '🤝 Game drawn!';
+          else if (finishedMatch.status === 'Closed - Time Expired') message = '⏱️ Tournament time expired.';
+          if (finishedMatch.forfeitReason) message += ' ' + finishedMatch.forfeitReason;
+          showGameOverBannerAndRedirect(message);
+        }
+      } else {
+        returnToLobby();
+      }
     }
   }
 
@@ -702,6 +757,8 @@
     tabStrikes = 0;
     isGameOverHandled = false;
     if (timerInterval) clearInterval(timerInterval);
+    if (gameOverCountdownInterval) clearInterval(gameOverCountdownInterval);
+    gameOverCountdownInterval = null;
     
     // Remove leftover banners/highlights
     const banner = document.getElementById('tempGameOverBanner');
@@ -733,6 +790,7 @@
     playerColor = matchData.whiteId === playerId ? 'white' : 'black';
     tabStrikes = 0;
     isGameOverHandled = false;
+    lastClockTickAt = Date.now();
     updateStrikeDotsUI(0);
 
     document.getElementById('lobby').classList.add('hidden');
@@ -894,24 +952,39 @@
 
   function startClock() {
     if (timerInterval) clearInterval(timerInterval);
+    lastClockTickAt = Date.now();
 
     timerInterval = setInterval(() => {
-      if (!activeMatchData || game.game_over() || isTournamentOver() || activeMatchData.status !== 'Live') return;
+      if (!activeMatchData || !activeMatchId || game.game_over() || isTournamentOver() || activeMatchData.status !== 'Live') {
+        lastClockTickAt = Date.now();
+        return;
+      }
+
+      // Use elapsed wall-clock time instead of assuming every interval fires on time.
+      // This compensates for browser tab throttling and temporary UI stalls.
+      const now = Date.now();
+      const elapsed = Math.max(0, Math.floor((now - lastClockTickAt) / 1000));
+      if (elapsed < 1) return;
+      lastClockTickAt += elapsed * 1000;
 
       if (game.turn() === 'w') {
-        activeMatchData.whiteTime = Math.max(0, activeMatchData.whiteTime - 1);
-        if (activeMatchData.whiteTime === 0 && playerColor === 'black') {
+        activeMatchData.whiteTime = Math.max(0, Number(activeMatchData.whiteTime || 0) - elapsed);
+        if (activeMatchData.whiteTime === 0 && playerColor === 'black' && !isGameOverHandled) {
+          isGameOverHandled = true;
           db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: '0-1' });
+          showGameOverBannerAndRedirect('⏱️ TIME OUT! Black wins!');
         }
       } else {
-        activeMatchData.blackTime = Math.max(0, activeMatchData.blackTime - 1);
-        if (activeMatchData.blackTime === 0 && playerColor === 'white') {
+        activeMatchData.blackTime = Math.max(0, Number(activeMatchData.blackTime || 0) - elapsed);
+        if (activeMatchData.blackTime === 0 && playerColor === 'white' && !isGameOverHandled) {
+          isGameOverHandled = true;
           db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: '1-0' });
+          showGameOverBannerAndRedirect('⏱️ TIME OUT! White wins!');
         }
       }
 
       renderClocks();
-    }, 1000);
+    }, 250);
   }
 
   function renderClocks() {
@@ -980,19 +1053,21 @@
       boardEl.appendChild(banner);
     }
 
+    if (gameOverCountdownInterval) clearInterval(gameOverCountdownInterval);
     let secondsLeft = 5;
     banner.innerHTML = `
       <h3 style="margin:0 0 6px; color: var(--dict-yellow);">${message}</h3>
       <p style="margin:0; font-size:13px;">Returning to lobby in <strong><span id="bannerCountdown">5</span>s</strong>...</p>
     `;
 
-    const countdownInterval = setInterval(() => {
+    gameOverCountdownInterval = setInterval(() => {
       secondsLeft--;
       const countEl = document.getElementById('bannerCountdown');
       if (countEl) countEl.textContent = secondsLeft;
 
       if (secondsLeft <= 0) {
-        clearInterval(countdownInterval);
+        clearInterval(gameOverCountdownInterval);
+        gameOverCountdownInterval = null;
         returnToLobby();
       }
     }, 1000);
@@ -1108,6 +1183,12 @@
   function renderMatchesList() {
     const tbody = document.getElementById('liveMatchesTable');
     const keys = Object.keys(allMatches);
+    const signature = keys.map(id => {
+      const m = allMatches[id] || {};
+      return [id, m.status, m.result, m.whiteName, m.blackName].join('|');
+    }).join('~');
+    if (signature === lastMatchesListSignature) return;
+    lastMatchesListSignature = signature;
     let activeCount = 0;
 
     tbody.innerHTML = keys.map(id => {
@@ -1118,7 +1199,7 @@
       
       return `<tr>
         <td><small>${id.substr(-6)}</small></td>
-        <td><strong>${m.whiteName}</strong> vs <strong>${m.blackName}</strong></td>
+        <td><strong>${escapeHtml(m.whiteName)}</strong> vs <strong>${escapeHtml(m.blackName)}</strong></td>
         <td>${statusTag}</td>
         <td>
           <button class="secondary" style="padding: 4px 8px; font-size: 11px;" onclick="spectateMatch('${id}')">👁️ Watch</button>
@@ -1238,8 +1319,10 @@
     if (isTournamentOver()) return alert('This tournament has ended. Reset data before starting a new tournament.');
 
     const waitingPlayers = [];
-    for (let id in allPlayers) {
-      waitingPlayers.push({ id: id, name: allPlayers[id].name });
+    for (const [id, player] of Object.entries(allPlayers)) {
+      if (player && ['idle', 'searching'].includes(player.status)) {
+        waitingPlayers.push({ id, name: player.name || 'Player' });
+      }
     }
 
     if (waitingPlayers.length < 2) {
@@ -1272,12 +1355,16 @@
         whiteStrikes: 0,
         blackStrikes: 0,
         drawOfferedBy: null,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        lastMoveAt: Date.now()
       };
 
       updates['/players/' + white.id + '/status'] = 'in-game';
       updates['/players/' + black.id + '/status'] = 'in-game';
     }
+
+    // If the number of waiting players is odd, leave the unpaired player in the lobby.
+    if (pool.length === 1) updates['/players/' + pool[0].id + '/status'] = 'idle';
 
     const durationMinutes = Number(document.getElementById('tournamentDurationMinutes').value);
     if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
@@ -1300,11 +1387,34 @@
   function resetTournamentData() {
     if (!requireHostAccess()) return;
     if (!confirm('⚠️ Are you sure you want to wipe all matches, leaderboard scores, and player statuses?')) return;
-    db.ref('matches').remove();
-    db.ref('settings').remove();
-    for (let id in allPlayers) {
-      db.ref('players/' + id).update({ status: 'idle' });
-    }
+
+    const updates = { '/matches': null, '/settings': null };
+    Object.keys(allPlayers).forEach(id => {
+      updates['/players/' + id + '/status'] = 'idle';
+    });
+    db.ref().update(updates, error => {
+      if (error) {
+        alert('Reset failed: ' + error.message);
+        return;
+      }
+      if (timerInterval) clearInterval(timerInterval);
+      if (gameOverCountdownInterval) clearInterval(gameOverCountdownInterval);
+      if (graceTimerInterval) clearInterval(graceTimerInterval);
+      if (tournamentTimerInterval) clearInterval(tournamentTimerInterval);
+      activeMatchId = null;
+      activeMatchData = null;
+      isGameOverHandled = false;
+      lastMatchesListSignature = '';
+      lastLeaderboardSignature = '';
+      alert('Tournament data reset successfully.');
+    });
+  }
+
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
   }
 
   // ==========================================
@@ -1355,6 +1465,9 @@
     }
 
     let sorted = Object.values(stats).sort((a, b) => b.points - a.points || b.wins - a.wins || a.played - b.played);
+    const signature = JSON.stringify(sorted);
+    if (signature === lastLeaderboardSignature) return;
+    lastLeaderboardSignature = signature;
 
     const tbody = document.getElementById('leaderboardBody');
     tbody.innerHTML = sorted.map((p, index) => {
@@ -1367,7 +1480,7 @@
 
       return `<tr>
         <td class="rank-badge ${rankClass}">${rankDisplay}</td>
-        <td><strong>${p.name}</strong><br><small style="color:var(--text-muted)">${p.email || 'Email unavailable'}</small>${index < 8 ? '<br><span class="tag tag-live">TOP 8 QUALIFIER</span>' : ''}</td>
+        <td><strong>${escapeHtml(p.name)}</strong><br><small style="color:var(--text-muted)">${escapeHtml(p.email || 'Email unavailable')}</small>${index < 8 ? '<br><span class="tag tag-live">TOP 8 QUALIFIER</span>' : ''}</td>
         <td><strong>${p.points} pts</strong></td>
         <td>${p.played}</td>
         <td>${p.wins}W / ${p.draws}D / ${p.losses}L</td>
