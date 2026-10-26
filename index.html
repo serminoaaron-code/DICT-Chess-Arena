@@ -546,7 +546,7 @@
     if (existingId) {
       playerId = existingId;
       playerNameStr = name;
-      db.ref('players/' + playerId).update({ name: name, status: 'idle' });
+      db.ref('players/' + playerId).update({ name: name, status: 'idle', online: true });
     } else {
       playerNameStr = name;
       playerId = 'player_' + Math.random().toString(36).substr(2, 9);
@@ -554,11 +554,17 @@
         name: name,
         email: email,
         status: 'idle',
+        online: true,
         joinedAt: Date.now()
       });
     }
 
     isSpectator = false;
+
+    // Presence: mark this player offline when their Firebase connection closes.
+    const playerRef = db.ref('players/' + playerId);
+    playerRef.child('online').onDisconnect().set(false);
+    playerRef.child('online').set(true);
 
     document.getElementById('displayName').textContent = playerNameStr;
     document.getElementById('roleBadge').textContent = 'Player: ' + playerNameStr;
@@ -632,7 +638,7 @@
 
     if (!isTournamentStarted) {
       findBtn.classList.add('hidden');
-      statusTxt.textContent = '⏳ The tournament host has not started the tournament yet. You will automatically be paired once the host clicks "Kickoff Tournament".';
+      statusTxt.textContent = '⏳ The tournament host has not started the tournament yet. You can find an opponent after the host clicks "Kickoff Tournament".';
     } else {
       findBtn.classList.remove('hidden');
       const playerStatus = allPlayers[playerId]?.status;
@@ -641,7 +647,7 @@
         statusTxt.textContent = 'Searching for an available player in queue...';
       } else {
         findBtn.textContent = '🔍 Find Next Opponent';
-        statusTxt.textContent = 'Match concluded. Click below to queue up for your next game!';
+        statusTxt.textContent = 'Ready to play? Click below when you are online to find an opponent.';
       }
     }
   }
@@ -671,7 +677,7 @@
 
     const tc = globalSettings.timeControl || '3+2';
     const opponentEntry = Object.entries(allPlayers).find(([id, player]) =>
-      id !== playerId && player && player.status === 'searching'
+      id !== playerId && player && player.online === true && player.status === 'searching'
     );
     if (!opponentEntry) return;
 
@@ -1318,58 +1324,21 @@
     if (!requireHostAccess()) return;
     if (isTournamentOver()) return alert('This tournament has ended. Reset data before starting a new tournament.');
 
-    const waitingPlayers = [];
-    for (const [id, player] of Object.entries(allPlayers)) {
-      if (player && ['idle', 'searching'].includes(player.status)) {
-        waitingPlayers.push({ id, name: player.name || 'Player' });
-      }
-    }
-
-    if (waitingPlayers.length < 2) {
-      return alert('At least 2 registered players are required to kickoff the tournament.');
-    }
-
-    const tc = document.getElementById('timeControlSelect').value;
-    const initialSeconds = tc === '15+10' ? 900 : 180;
-    const initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-
-    let pool = waitingPlayers.slice();
-    let updates = {};
-
-    let matchIndex = 1;
-    while (pool.length >= 2) {
-      const white = pool.shift();
-      const black = pool.shift();
-      const matchId = 'match_' + Date.now() + '_' + matchIndex++;
-
-      updates['/matches/' + matchId] = {
-        whiteId: white.id,
-        whiteName: white.name,
-        blackId: black.id,
-        blackName: black.name,
-        fen: initialFen,
-        whiteTime: initialSeconds,
-        blackTime: initialSeconds,
-        timeControl: tc,
-        status: 'Live',
-        whiteStrikes: 0,
-        blackStrikes: 0,
-        drawOfferedBy: null,
-        createdAt: Date.now(),
-        lastMoveAt: Date.now()
-      };
-
-      updates['/players/' + white.id + '/status'] = 'in-game';
-      updates['/players/' + black.id + '/status'] = 'in-game';
-    }
-
-    // If the number of waiting players is odd, leave the unpaired player in the lobby.
-    if (pool.length === 1) updates['/players/' + pool[0].id + '/status'] = 'idle';
-
     const durationMinutes = Number(document.getElementById('tournamentDurationMinutes').value);
     if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
       return alert('Tournament duration must be between 1 and 1440 minutes.');
     }
+
+    const tc = document.getElementById('timeControlSelect').value;
+    const updates = {};
+
+    // Kickoff only opens the tournament. It does NOT create matches or pair players.
+    // Reset stale queue statuses so offline players cannot be paired later.
+    Object.keys(allPlayers).forEach(id => {
+      if (allPlayers[id] && allPlayers[id].status === 'searching') {
+        updates['/players/' + id + '/status'] = 'idle';
+      }
+    });
 
     updates['/settings/timeControl'] = tc;
     updates['/settings/registrationLocked'] = true;
@@ -1379,8 +1348,11 @@
     updates['/settings/tournamentEndTime'] = Date.now() + durationMinutes * 60 * 1000;
 
     db.ref().update(updates, err => {
-      if (err) alert('Kickoff failed: ' + err.message);
-      else alert('🚀 Tournament kicked off! Live pairings launched.');
+      if (err) {
+        alert('Kickoff failed: ' + err.message);
+      } else {
+        alert('🚀 Tournament kicked off! No matches were created. Players must click "Find Next Opponent" when they are online and ready.');
+      }
     });
   }
 
