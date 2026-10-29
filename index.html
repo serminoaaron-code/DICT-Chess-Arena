@@ -289,7 +289,7 @@
           <label>Host Match Format / Time Control</label>
           <select id="timeControlSelect">
             <option value="3+2">3+2 Blitz (3 mins + 2s increment)</option>
-            <option value="15+10">15+10 Rapid (15 mins + 10s increment)</option>
+            <option value="10+5">10+5 Rapid (10 mins + 5s increment)</option>
           </select>
 
           <label>Tournament Duration (minutes)</label>
@@ -684,7 +684,7 @@
     const [opponentId, opponent] = opponentEntry;
     const matchId = 'match_' + db.ref('matches').push().key;
     const now = Date.now();
-    const initialSeconds = tc === '15+10' ? 900 : 180;
+    const initialSeconds = tc === '10+5' ? 600 : 180;
     const initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const matchPayload = {
       whiteId: opponentId,
@@ -848,7 +848,7 @@
     const move = game.move({ from: from, to: to, promotion: 'q' });
     if (!move) return false;
 
-    const inc = activeMatchData.timeControl === '15+10' ? 10 : 2;
+    const inc = activeMatchData.timeControl === '10+5' ? 5 : 2;
     if (playerColor === 'white') activeMatchData.whiteTime += inc;
     else activeMatchData.blackTime += inc;
 
