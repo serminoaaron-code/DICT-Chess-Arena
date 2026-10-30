@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DICT Digital Chess Sportsfest 2026</title>
+  <title>DICT Chess web app - Swiss & Knockout Bracket</title>
 
   <!-- External Libraries CSS & JS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
@@ -32,15 +32,18 @@
       --gold: #d97706;
       --silver: #6b7280;
       --bronze: #b45309;
+      --top8-bg: #eff6ff;
+      --top8-border: #3b82f6;
     }
     
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
     
-    button, input, select { font: inherit; padding: 11px 14px; border-radius: 6px; border: 0; outline: none; }
+    button, input, select { font: inherit; padding: 10px 14px; border-radius: 6px; border: 0; outline: none; }
     button { background: var(--dict-blue); color: #ffffff; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
     button.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
     button.danger { background: var(--red); color: #fff; }
+    button.success { background: #10b981; color: #fff; }
     button:hover { filter: brightness(1.15); transform: translateY(-1px); }
     button:active { transform: translateY(0); }
     button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
@@ -49,11 +52,10 @@
     input:focus, select:focus { border-color: var(--dict-blue); }
     label { display: block; color: var(--text-muted); margin: 8px 0 4px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .layout { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .layout { max-width: 1240px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .full { grid-column: 1 / -1; }
     
-    /* Header Card & Edge-to-Edge Banner Styling */
     .header-card { 
       padding: 0; 
       overflow: hidden; 
@@ -68,7 +70,9 @@
       max-width: 100%;
       height: auto; 
       display: block; 
-      object-fit: fill; 
+      object-fit: cover; 
+      max-height: 220px;
+      background: linear-gradient(135deg, var(--dict-blue) 0%, var(--dict-blue-dark) 100%);
     }
     
     .header-status-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #ffffff; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
@@ -77,6 +81,7 @@
     .badge.green { border-color: #10b981; color: #047857; background: #ecfdf5; }
     .badge.red { border-color: var(--red); color: var(--red); background: #fef2f2; }
     .badge.yellow { border-color: var(--yellow); color: var(--yellow); background: #fffbeb; }
+    .badge.purple { border-color: #8b5cf6; color: #6d28d9; background: #f5f3ff; }
 
     .arena { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 15px; position: relative; }
     #board { width: 100%; max-width: 440px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 2px solid var(--dict-blue); position: relative; }
@@ -92,24 +97,20 @@
     
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    /* Highlights */
     .highlight-sq { background-color: rgba(216, 175, 0, 0.4) !important; }
-    
-    /* Red King Check Highlight */
     .in-check {
       background-color: rgba(255, 0, 0, 0.6) !important;
       box-shadow: inset 0 0 10px rgba(191, 13, 62, 0.8) !important;
     }
 
-    /* Game Over Banner Overlay */
     .game-over-banner {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.88);
+      background: rgba(0, 0, 0, 0.92);
       color: #ffffff;
-      padding: 16px 24px;
+      padding: 18px 24px;
       border-radius: 10px;
       text-align: center;
       z-index: 1000;
@@ -120,13 +121,15 @@
 
     .stack { display: flex; flex-direction: column; gap: 10px; }
     .row { display: flex; gap: 10px; align-items: center; }
-    .scroll { overflow: auto; max-height: 280px; border-radius: 6px; border: 1px solid var(--border); }
+    .scroll { overflow: auto; max-height: 320px; border-radius: 6px; border: 1px solid var(--border); }
     
     table { width: 100%; border-collapse: collapse; text-align: left; background: #ffffff; }
-    th { background: #f3f4f6; padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; sticky: top; border-bottom: 2px solid var(--border); }
+    th { background: #f3f4f6; padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; position: sticky; top: 0; border-bottom: 2px solid var(--border); }
     td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); }
     tr:last-child td { border-bottom: 0; }
     tr:hover { background: #f9fafb; }
+    tr.top8-row { background: var(--top8-bg); }
+    tr.top8-row td { border-bottom: 1px solid #dbeafe; }
 
     .rank-badge { font-weight: bold; }
     .rank-1 { color: var(--gold); }
@@ -138,16 +141,78 @@
     .strike-dot.active { background: var(--red); border-color: var(--red); box-shadow: 0 0 6px var(--red); }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
-    .modal { background: #ffffff; border: 2px solid var(--red); border-radius: 12px; padding: 24px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .modal { background: #ffffff; border: 2px solid var(--red); border-radius: 12px; padding: 24px; max-width: 440px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
     .modal h3 { color: var(--red); margin-top: 0; font-size: 20px; }
     
     .hidden { display: none !important; }
-    .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+    .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; display: inline-block; }
     .tag-live { background: #ecfdf5; color: #047857; border: 1px solid #10b981; }
     .tag-done { background: #f3f4f6; color: var(--text-muted); border: 1px solid var(--border); }
+    .tag-top8 { background: #dbeafe; color: #1e40af; border: 1px solid #60a5fa; margin-top: 2px; }
+    .tag-knockout { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; }
 
-    @media (max-width: 768px) {
+    /* Tournament Bracket Visual Styles */
+    .bracket-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 15px;
+    }
+    .bracket-round-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--dict-blue-dark);
+      text-align: center;
+      margin-bottom: 5px;
+      padding: 4px;
+      background: var(--panel2);
+      border-radius: 4px;
+    }
+    .bracket-match {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      position: relative;
+    }
+    .bracket-match.active-match {
+      border-color: var(--dict-blue);
+      box-shadow: 0 0 8px rgba(0, 50, 160, 0.25);
+    }
+    .bracket-slot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      background: var(--panel2);
+      border-radius: 4px;
+      margin: 4px 0;
+      font-size: 13px;
+    }
+    .bracket-slot.winner {
+      background: #d1fae5;
+      font-weight: bold;
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+    .bracket-slot-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 850px) {
       .layout { grid-template-columns: 1fr; padding: 10px; gap: 12px; }
+      .bracket-container { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -169,13 +234,34 @@
     </div>
   </div>
 
+  <!-- Match Found Confirmation Modal (10s Accept/Decline) -->
+  <div id="matchPromptModal" class="modal-overlay hidden">
+    <div class="modal" style="border-color: var(--dict-blue);">
+      <h3 style="color: var(--dict-blue);">⚔️ OPPONENT FOUND!</h3>
+      <p style="font-size: 15px; margin: 10px 0;">An opponent is ready to play. Accept to start?</p>
+      
+      <div style="font-size: 28px; font-weight: bold; color: var(--dict-blue); margin: 15px 0;">
+        ⏱️ <span id="promptCountdown">10</span>s
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+        <button style="background: #10b981;" onclick="respondToOffer(true)">Accept</button>
+        <button class="danger" onclick="respondToOffer(false)">Decline</button>
+      </div>
+    </div>
+  </div>
+
   <div class="layout">
     <!-- Header Banner Image & Status Bar -->
     <div class="full header-card">
-      <img src="banner.png" alt="DICT Digital Chess Sportsfest 2026" class="header-banner-img">
+      <div style="background: linear-gradient(135deg, #002270 0%, #0032a0 100%); color: white; padding: 25px 20px; text-align: center;">
+        <h1 style="margin: 0; font-size: 26px; letter-spacing: 0.5px;">DICT Digital Chess Sportsfest 2026</h1>
+        <p style="margin: 6px 0 0; opacity: 0.85; font-size: 14px;">Official Realtime Tournament Engine — Swiss System & Knockout Championship</p>
+      </div>
       <div class="header-status-bar">
         <span style="font-size: 13px; font-weight: 600; color: var(--dict-blue-dark);">Department of Information and Communications Technology</span>
         <div class="row">
+          <div id="modeBadge" class="badge purple">Mode: Swiss System</div>
           <div id="statusBadge" class="badge green">🟢 Lobby Open</div>
           <div id="roleBadge" class="badge">Not Signed In</div>
         </div>
@@ -187,12 +273,13 @@
       <!-- Player Lobby / Matchmaker View -->
       <div id="lobby" style="text-align: center; padding: 15px 10px;">
         <h3 style="margin-top:0;">Welcome, <span id="displayName" style="color:var(--dict-blue);"></span>!</h3>
-        <p id="queueStatusText" style="color: var(--text-muted); max-width: 500px; margin: 0 auto 15px;">
+        <p id="queueStatusText" style="color: var(--text-muted); max-width: 550px; margin: 0 auto 15px;">
           The tournament host has not started the tournament yet. Please wait...
         </p>
 
         <div id="playerActionArea" class="stack" style="max-width: 320px; margin: 0 auto;">
           <button id="findMatchBtn" class="hidden" onclick="toggleMatchQueue()">🔍 Find Next Opponent</button>
+          <button id="knockoutMatchBtn" class="hidden success" onclick="enterMyKnockoutMatch()">⚔️ Launch Knockout Match</button>
         </div>
       </div>
 
@@ -253,13 +340,17 @@
       <div id="authPanel" class="stack">
         <div id="registrationOpenBox">
           <label>Email Address (unique player identity)</label>
-          <input id="playerEmail" type="email" placeholder="you@example.com" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
+          <input id="playerEmail" type="email" placeholder="you@dict.gov.ph" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
           
           <label>Display Name</label>
           <input id="playerName" placeholder="Enter your full name or handle" maxlength="40" autocomplete="name">
 
           <label>DICT Agency / Region / Office</label>
           <input id="playerAgency" placeholder="e.g. Central Office / Region IVA / ICT Industry Development Bureau" maxlength="60">
+
+          <p id="knockoutNoticeText" class="hidden" style="font-size: 12px; color: #6b21a8; background: #f3e8ff; padding: 8px; border-radius: 6px; margin: 8px 0 0;">
+            ℹ️ <strong>Knockout Mode Active:</strong> Only Admin-slotted players can proceed to knockout matches.
+          </p>
 
           <button style="margin-top: 10px; width: 100%;" onclick="registerPlayer()">Enter Waiting Lobby</button>
         </div>
@@ -280,40 +371,67 @@
           <label>Host/Admin Password</label>
           <input id="hostPasswordInput" type="password" placeholder="Enter host password" autocomplete="current-password">
           <button class="secondary" onclick="unlockHostControls()">Unlock Host Controls</button>
-          <small style="color:var(--text-muted)">Host controls are locked by default on this page.</small>
+          <small style="color:var(--text-muted)">Default password is <strong>1101</strong>.</small>
         </div>
         <div id="hostControlsLockedNotice" class="badge red">🔒 Host controls locked</div>
+        
         <div id="hostControlsArea" class="stack hidden">
           <div style="background: var(--panel2); padding: 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap:8px; flex-wrap:wrap;">
             <span style="font-size: 13px; color: var(--text-muted);">Grace Period:</span>
             <span id="graceTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--yellow);">OFF</span>
-            <span style="font-size: 13px; color: var(--text-muted);">Tournament time remaining:</span>
+            <span style="font-size: 13px; color: var(--text-muted);">Timer:</span>
             <span id="tournamentTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--dict-blue);">Not started</span>
           </div>
 
-          <label>Host Match Format / Time Control</label>
-          <select id="timeControlSelect">
-            <option value="3+2">3+2 Blitz (3 mins + 2s increment)</option>
-            <option value="10+5">10+5 Rapid (10 mins + 5s increment)</option>
+          <label>Tournament Category / System Mode</label>
+          <select id="tournamentModeSelect" onchange="onAdminModeChange()">
+            <option value="swiss">Swiss System (Open Registration & Pairing Queue)</option>
+            <option value="knockout">Knockout Mode (Top 8 / Admin Assigned Bracket)</option>
           </select>
+
+          <label>Host Match Format / Time Control</label>
+          <select id="timeControlSelect" onchange="onAdminTimeControlChange()">
+            <option value="10+5">10+5 Rapid (10 mins + 5s increment) [Required for Knockout Bracket]</option>
+            <option value="3+2">3+2 Blitz (3 mins + 2s increment)</option>
+          </select>
+
+          <div id="knockoutRuleWarning" class="hidden" style="background: #fffbeb; border: 1px solid var(--yellow); padding: 8px 10px; border-radius: 6px; font-size: 12px; color: #92400e;">
+            ⚠️ Bracket player placement is only available under <strong>10+5 Rapid</strong> time control.
+          </div>
 
           <label>Tournament Duration (minutes)</label>
           <input id="tournamentDurationMinutes" type="number" min="1" max="1440" value="120">
-          <small style="color:var(--text-muted)">When time expires, new games and moves are blocked.</small>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <button class="secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
             <button class="secondary" onclick="toggleRegistrationLock()" id="lockToggleBtn">🔒 Lock Registration</button>
           </div>
 
-          <button onclick="kickoffTournament()" style="background: var(--dict-blue); color: white;">🚀 Kickoff Tournament</button>
+          <button onclick="kickoffTournament()" style="background: var(--dict-blue); color: white;">🚀 Save Settings & Kickoff</button>
           <button class="danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
           <button class="secondary" onclick="lockHostControls()">🔒 Lock Host Controls</button>
         </div>
       </div>
     </div>
 
-    <!-- Panel 3: Live Tournament Matches -->
+    <!-- Panel 3 (Full Width): 8-Player Interactive Bracket View (Knockout Mode) -->
+    <div id="bracketPanel" class="panel full hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h3 style="margin:0;">🏆 Top 8 Knockout Championship Bracket</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">Quarterfinals ➔ Semifinals ➔ Finals (10+5 Rapid)</span>
+        </div>
+        <div id="adminBracketControls" class="hidden row">
+          <button class="success" style="padding: 6px 12px; font-size: 12px;" onclick="saveAdminBracketSelections()">💾 Assign Selected Bracket Slots</button>
+        </div>
+      </div>
+
+      <div class="bracket-container" id="bracketContainer">
+        <!-- Bracket rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Panel 4: Live Tournament Matches -->
     <div class="panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="margin:0;">👁️ Live Matches (<span id="activeMatchCount">0</span>)</h3>
@@ -334,17 +452,20 @@
       </div>
     </div>
 
-    <!-- Panel 4: Live Tournament Leaderboard -->
+    <!-- Panel 5: Full Live Leaderboard with Top 8 Highlights -->
     <div class="panel">
-      <h3 style="margin-top:0; margin-bottom: 6px;">🏆 Leaderboard (Ranked Standings)</h3>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">Top 8 ranked players mark round-robin qualifiers.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <h3 style="margin:0;">🏆 Complete Leaderboard & Standings</h3>
+        <span class="tag tag-top8">ALL RECORDS (TOP 8 HIGHLIGHTED)</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">All signed-in players are listed below. Top 8 automatically qualify for Knockout Mode.</p>
       <div class="scroll">
         <table>
           <thead>
             <tr>
               <th>Rank</th>
               <th>Player</th>
-              <th>Points</th>
+              <th>Pts</th>
               <th>Played</th>
               <th>W / D / L</th>
             </tr>
@@ -378,6 +499,7 @@
   // ==========================================
   let playerId = null;
   let playerNameStr = '';
+  let playerEmailStr = '';
   let isSpectator = false;
   let spectatingMatchId = null;
 
@@ -393,10 +515,14 @@
   let matchmakingInProgress = false;
   let lastMatchesListSignature = '';
   let lastLeaderboardSignature = '';
+  let lastBracketSignature = '';
   let graceTimerInterval = null;
   let tournamentTimerInterval = null;
   let hostControlsUnlocked = false;
   const HOST_ADMIN_PASSWORD = '1101';
+
+  let activeOfferId = null;
+  let offerCountdownInterval = null;
 
   let tabStrikes = 0;
   let isTournamentStarted = false;
@@ -406,6 +532,18 @@
   let allPlayers = {};
   let allMatches = {};
   let globalSettings = {};
+  let bracketState = {};
+
+  // Default empty 8-player bracket schema
+  const DEFAULT_BRACKET = {
+    qf1: { p1: null, p2: null, winner: null, matchId: null },
+    qf2: { p1: null, p2: null, winner: null, matchId: null },
+    qf3: { p1: null, p2: null, winner: null, matchId: null },
+    qf4: { p1: null, p2: null, winner: null, matchId: null },
+    sf1: { p1: null, p2: null, winner: null, matchId: null },
+    sf2: { p1: null, p2: null, winner: null, matchId: null },
+    f1:  { p1: null, p2: null, winner: null, matchId: null }
+  };
 
   // ==========================================
   // REALTIME DATABASE LISTENERS
@@ -418,10 +556,20 @@
     if (globalSettings.timeControl) {
       document.getElementById('timeControlSelect').value = globalSettings.timeControl;
     }
+    if (globalSettings.mode) {
+      document.getElementById('tournamentModeSelect').value = globalSettings.mode;
+    }
 
     updateSystemStatusUI();
     handleGraceTimerSync(globalSettings.graceTimerEnd);
     handleTournamentTimerSync(globalSettings.tournamentEndTime);
+    updatePlayerLobbyUI();
+    renderBracketView();
+  });
+
+  db.ref('bracket').on('value', snapshot => {
+    bracketState = snapshot.val() || DEFAULT_BRACKET;
+    renderBracketView();
     updatePlayerLobbyUI();
   });
 
@@ -430,11 +578,13 @@
     allPlayers[snapshot.key] = snapshot.val() || {};
     updateLeaderboard();
     updatePlayerLobbyUI();
+    renderBracketView();
   });
   playersRef.on('child_changed', snapshot => {
     allPlayers[snapshot.key] = snapshot.val() || {};
     updateLeaderboard();
     updatePlayerLobbyUI();
+    renderBracketView();
     if (snapshot.key === playerId && allPlayers[playerId]?.status === 'searching') {
       attemptAutoMatchmaking();
     }
@@ -443,6 +593,7 @@
     delete allPlayers[snapshot.key];
     updateLeaderboard();
     updatePlayerLobbyUI();
+    renderBracketView();
   });
 
   const matchesRef = db.ref('matches');
@@ -450,6 +601,7 @@
     allMatches[snapshot.key] = snapshot.val() || {};
     renderMatchesList();
     updateLeaderboard();
+    checkBracketMatchCompletions();
 
     if (isSpectator && spectatingMatchId && allMatches[spectatingMatchId]) {
       syncSpectatorBoard(allMatches[spectatingMatchId]);
@@ -464,6 +616,34 @@
     renderMatchesList();
     updateLeaderboard();
     if (activeMatchId === snapshot.key) returnToLobby();
+  });
+
+  // Listen for Match Offers (10s Accept/Decline) - Swiss Mode
+  db.ref('offers').on('value', snapshot => {
+    if (!playerId || isSpectator || activeMatchId) return;
+    if ((globalSettings.mode || 'swiss') === 'knockout') return; // Offers disabled in Knockout Mode
+
+    const offers = snapshot.val() || {};
+    let myOfferKey = null;
+    let myOffer = null;
+
+    for (let key in offers) {
+      if ((offers[key].p1 === playerId || offers[key].p2 === playerId) && offers[key].status === 'pending') {
+        myOfferKey = key;
+        myOffer = offers[key];
+        break;
+      }
+    }
+
+    if (myOffer) {
+      if (activeOfferId !== myOfferKey) {
+        activeOfferId = myOfferKey;
+        showMatchPromptModal(myOffer);
+      }
+    } else if (activeOfferId) {
+      activeOfferId = null;
+      hideMatchPromptModal();
+    }
   });
 
   // ==========================================
@@ -544,6 +724,7 @@
       return alert('Registration is currently locked by the host.');
     }
 
+    const mode = globalSettings.mode || 'swiss';
     const existingId = Object.keys(allPlayers).find(
       id => (allPlayers[id].email || '').toLowerCase() === email
     );
@@ -551,15 +732,19 @@
     if (existingId) {
       playerId = existingId;
       playerNameStr = name;
-      db.ref('players/' + playerId).update({ name: name, agency: agency, status: 'idle', online: true });
+      playerEmailStr = email;
+      db.ref('players/' + playerId).update({ name: name, agency: agency, online: true });
     } else {
+      // In Knockout Mode, players can enter lobby but match placement is Admin-managed
       playerNameStr = name;
+      playerEmailStr = email;
       playerId = 'player_' + Math.random().toString(36).substr(2, 9);
       db.ref('players/' + playerId).set({
         name: name,
         email: email,
         agency: agency,
         status: 'idle',
+        missedPrompts: 0,
         online: true,
         joinedAt: Date.now()
       });
@@ -578,6 +763,7 @@
     document.getElementById('authSection').classList.add('hidden');
 
     updatePlayerLobbyUI();
+    checkPlayerMatchAssignment();
   }
 
   function enterSpectatorOnly() {
@@ -590,14 +776,29 @@
     document.getElementById('mainArenaPanel').classList.remove('hidden');
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('playerActionArea').classList.add('hidden');
-    document.getElementById('queueStatusText').textContent = 'Select any active match from the Live Matches panel to view the game.';
+    document.getElementById('queueStatusText').textContent = 'Select any active match from the Live Matches panel or Knockout Bracket to spectate.';
   }
 
   function updateSystemStatusUI() {
     const statusBadge = document.getElementById('statusBadge');
+    const modeBadge = document.getElementById('modeBadge');
     const lockToggleBtn = document.getElementById('lockToggleBtn');
     const openBox = document.getElementById('registrationOpenBox');
     const closedBox = document.getElementById('registrationClosedBox');
+    const knockoutNotice = document.getElementById('knockoutNoticeText');
+
+    const mode = globalSettings.mode || 'swiss';
+    if (mode === 'knockout') {
+      modeBadge.textContent = 'Mode: Knockout System';
+      modeBadge.className = 'badge purple';
+      knockoutNotice.classList.remove('hidden');
+      document.getElementById('bracketPanel').classList.remove('hidden');
+    } else {
+      modeBadge.textContent = 'Mode: Swiss System';
+      modeBadge.className = 'badge yellow';
+      knockoutNotice.classList.add('hidden');
+      document.getElementById('bracketPanel').classList.add('hidden');
+    }
 
     if (isTournamentOver()) {
       statusBadge.textContent = '🏁 Tournament Ended';
@@ -633,35 +834,121 @@
     if (!playerId || isSpectator) return;
 
     const findBtn = document.getElementById('findMatchBtn');
+    const knockoutBtn = document.getElementById('knockoutMatchBtn');
     const statusTxt = document.getElementById('queueStatusText');
+    const mode = globalSettings.mode || 'swiss';
 
     if (isTournamentOver()) {
       findBtn.classList.add('hidden');
+      knockoutBtn.classList.add('hidden');
       statusTxt.textContent = '🏁 The tournament duration has ended. No further games can be started.';
       return;
     }
 
-    if (!isTournamentStarted) {
+    if (mode === 'knockout') {
       findBtn.classList.add('hidden');
-      statusTxt.textContent = '⏳ The tournament host has not started the tournament yet. You can find an opponent after the host clicks "Kickoff Tournament".';
-    } else {
-      findBtn.classList.remove('hidden');
-      const playerStatus = allPlayers[playerId]?.status;
-      if (playerStatus === 'searching') {
-        findBtn.textContent = '⏳ Searching Opponent... (Click to Cancel)';
-        statusTxt.textContent = 'Searching for an available player in queue...';
+      const hasKnockoutMatch = getPlayerAssignedKnockoutMatch(playerId);
+
+      if (hasKnockoutMatch) {
+        knockoutBtn.classList.remove('hidden');
+        statusTxt.textContent = `⚔️ You are assigned to Knockout Match (${hasKnockoutMatch.key.toUpperCase()}) vs ${hasKnockoutMatch.opponentName}. Click below to enter!`;
       } else {
-        findBtn.textContent = '🔍 Find Next Opponent';
-        statusTxt.textContent = 'Ready to play? Click below when you are online to find an opponent.';
+        knockoutBtn.classList.add('hidden');
+        statusTxt.textContent = 'ℹ️ Knockout Mode is active. Waiting for Host Admin to assign your bracket slot...';
+      }
+    } else {
+      knockoutBtn.classList.add('hidden');
+      if (!isTournamentStarted) {
+        findBtn.classList.add('hidden');
+        statusTxt.textContent = '⏳ The tournament host has not started the tournament yet. You can find an opponent after the host clicks "Kickoff Tournament".';
+      } else {
+        findBtn.classList.remove('hidden');
+        const playerStatus = allPlayers[playerId]?.status;
+        if (playerStatus === 'searching') {
+          findBtn.textContent = '⏳ Searching Opponent... (Click to Cancel)';
+          statusTxt.textContent = 'Searching for an available player in queue...';
+        } else {
+          findBtn.textContent = '🔍 Find Next Opponent';
+          statusTxt.textContent = 'Ready to play? Click below when you are online to find an opponent.';
+        }
       }
     }
   }
 
+  function getPlayerAssignedKnockoutMatch(pId) {
+    if (!bracketState) return null;
+    for (let slotKey in bracketState) {
+      const match = bracketState[slotKey];
+      if (match && (match.p1 === pId || match.p2 === pId)) {
+        const isP1 = match.p1 === pId;
+        const oppId = isP1 ? match.p2 : match.p1;
+        const oppName = allPlayers[oppId]?.name || 'TBD Opponent';
+        return { key: slotKey, match: match, isP1: isP1, opponentId: oppId, opponentName: oppName };
+      }
+    }
+    return null;
+  }
+
+  function enterMyKnockoutMatch() {
+    if (!playerId) return;
+    const koInfo = getPlayerAssignedKnockoutMatch(playerId);
+    if (!koInfo) return alert('You do not have an active Knockout slot assigned.');
+
+    if (!koInfo.match.p1 || !koInfo.match.p2) {
+      return alert('Your opponent is not yet determined for this bracket round.');
+    }
+
+    // Launch or Join Match
+    if (koInfo.match.matchId && allMatches[koInfo.match.matchId]) {
+      const mData = allMatches[koInfo.match.matchId];
+      setupMatch(koInfo.match.matchId, mData);
+    } else {
+      // Create Knockout match
+      const tc = globalSettings.timeControl || '10+5';
+      const mId = 'match_ko_' + koInfo.key + '_' + Date.now();
+      const p1Obj = allPlayers[koInfo.match.p1];
+      const p2Obj = allPlayers[koInfo.match.p2];
+
+      const initialSeconds = tc === '10+5' ? 600 : 180;
+      const matchPayload = {
+        whiteId: koInfo.match.p1,
+        whiteName: p1Obj?.name || 'Player 1',
+        blackId: koInfo.match.p2,
+        blackName: p2Obj?.name || 'Player 2',
+        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        whiteTime: initialSeconds,
+        blackTime: initialSeconds,
+        timeControl: tc,
+        status: 'Live',
+        isKnockout: true,
+        bracketSlot: koInfo.key,
+        whiteStrikes: 0,
+        blackStrikes: 0,
+        drawOfferedBy: null,
+        createdAt: Date.now(),
+        lastMoveAt: Date.now()
+      };
+
+      const updates = {};
+      updates['/matches/' + mId] = matchPayload;
+      updates['/bracket/' + koInfo.key + '/matchId'] = mId;
+      updates['/players/' + koInfo.match.p1 + '/status'] = 'in-game';
+      updates['/players/' + koInfo.match.p2 + '/status'] = 'in-game';
+
+      db.ref().update(updates, err => {
+        if (!err) {
+          setupMatch(mId, matchPayload);
+        }
+      });
+    }
+  }
+
   // ==========================================
-  // AUTOMATED MATCHMAKING & QUEUE
+  // MATCH PROMPT & ACCEPT/DECLINE QUEUE
   // ==========================================
   function toggleMatchQueue() {
     if (!playerId || isSpectator) return;
+    if ((globalSettings.mode || 'swiss') === 'knockout') return;
     if (!isTournamentStarted) return alert('The host has not started the tournament yet.');
     if (isTournamentOver()) return alert('The tournament duration has ended.');
 
@@ -678,25 +965,151 @@
 
   function attemptAutoMatchmaking() {
     if (matchmakingInProgress || isTournamentOver() || !isTournamentStarted || !playerId) return;
+    if ((globalSettings.mode || 'swiss') === 'knockout') return;
     if (allPlayers[playerId]?.status !== 'searching') return;
 
-    const tc = globalSettings.timeControl || '3+2';
     const opponentEntry = Object.entries(allPlayers).find(([id, player]) =>
       id !== playerId && player && player.online === true && player.status === 'searching'
     );
     if (!opponentEntry) return;
 
     const [opponentId, opponent] = opponentEntry;
+
+    // Race condition prevention
+    if (playerId > opponentId) return;
+
+    matchmakingInProgress = true;
+    const offerId = 'offer_' + db.ref('offers').push().key;
+    const expiresAt = Date.now() + 10000;
+
+    const offerPayload = {
+      p1: playerId,
+      p1Name: playerNameStr || 'Player',
+      p1Resp: null,
+      p2: opponentId,
+      p2Name: opponent.name || 'Player',
+      p2Resp: null,
+      status: 'pending',
+      expiresAt: expiresAt
+    };
+
+    const updates = {};
+    updates['/offers/' + offerId] = offerPayload;
+    updates['/players/' + playerId + '/status'] = 'prompted';
+    updates['/players/' + opponentId + '/status'] = 'prompted';
+
+    db.ref().update(updates, err => {
+      matchmakingInProgress = false;
+      if (err) console.error('Offer failed:', err);
+    });
+  }
+
+  function showMatchPromptModal(offer) {
+    const modal = document.getElementById('matchPromptModal');
+    modal.classList.remove('hidden');
+
+    if (offerCountdownInterval) clearInterval(offerCountdownInterval);
+
+    const updateCountdown = () => {
+      const left = Math.max(0, Math.ceil((offer.expiresAt - Date.now()) / 1000));
+      document.getElementById('promptCountdown').textContent = left;
+
+      if (left <= 0) {
+        clearInterval(offerCountdownInterval);
+        handleOfferTimeout(offer);
+      }
+    };
+
+    updateCountdown();
+    offerCountdownInterval = setInterval(updateCountdown, 1000);
+  }
+
+  function hideMatchPromptModal() {
+    if (offerCountdownInterval) clearInterval(offerCountdownInterval);
+    document.getElementById('matchPromptModal').classList.add('hidden');
+  }
+
+  function respondToOffer(accepted) {
+    if (!activeOfferId) return;
+
+    db.ref('offers/' + activeOfferId).once('value').then(snap => {
+      const offer = snap.val();
+      if (!offer || offer.status !== 'pending') return;
+
+      const pKey = offer.p1 === playerId ? 'p1Resp' : 'p2Resp';
+      const updates = {};
+      updates[`/offers/${activeOfferId}/${pKey}`] = accepted ? 'accepted' : 'declined';
+
+      const otherResp = offer.p1 === playerId ? offer.p2Resp : offer.p1Resp;
+
+      if (!accepted) {
+        updates[`/offers/${activeOfferId}/status`] = 'declined';
+        updates[`/players/${playerId}/status`] = 'idle';
+        const otherId = offer.p1 === playerId ? offer.p2 : offer.p1;
+        updates[`/players/${otherId}/status`] = 'searching';
+      } else if (otherResp === 'accepted') {
+        updates[`/offers/${activeOfferId}/status`] = 'fulfilled';
+        createLiveMatch(offer.p1, offer.p1Name, offer.p2, offer.p2Name);
+      }
+
+      db.ref().update(updates);
+      hideMatchPromptModal();
+    });
+  }
+
+  function handleOfferTimeout(offer) {
+    if (!offer || offer.status !== 'pending') return;
+
+    db.ref('offers/' + activeOfferId).once('value').then(snap => {
+      const curOffer = snap.val();
+      if (!curOffer || curOffer.status !== 'pending') return;
+
+      const p1NoResp = !curOffer.p1Resp;
+      const p2NoResp = !curOffer.p2Resp;
+
+      const updates = {};
+      updates[`/offers/${activeOfferId}/status`] = 'expired';
+
+      [
+        { id: curOffer.p1, noResp: p1NoResp, resp: curOffer.p1Resp },
+        { id: curOffer.p2, noResp: p2NoResp, resp: curOffer.p2Resp }
+      ].forEach(p => {
+        if (p.resp === 'declined') {
+          updates[`/players/${p.id}/status`] = 'idle';
+        } else if (p.noResp) {
+          const curMissed = (allPlayers[p.id]?.missedPrompts || 0) + 1;
+          updates[`/players/${p.id}/missedPrompts`] = curMissed;
+
+          if (curMissed >= 3) {
+            updates[`/players/${p.id}/status`] = 'idle';
+            if (p.id === playerId) {
+              alert('⚠️ You were removed from the searching queue due to 3 missed match prompts.');
+            }
+          } else {
+            updates[`/players/${p.id}/status`] = 'searching';
+          }
+        } else {
+          updates[`/players/${p.id}/status`] = 'searching';
+        }
+      });
+
+      db.ref().update(updates);
+      hideMatchPromptModal();
+    });
+  }
+
+  function createLiveMatch(p1Id, p1Name, p2Id, p2Name) {
+    const tc = globalSettings.timeControl || '3+2';
     const matchId = 'match_' + db.ref('matches').push().key;
     const now = Date.now();
     const initialSeconds = tc === '10+5' ? 600 : 180;
-    const initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
     const matchPayload = {
-      whiteId: opponentId,
-      whiteName: opponent.name || 'Player',
-      blackId: playerId,
-      blackName: playerNameStr || 'Player',
-      fen: initialFen,
+      whiteId: p1Id,
+      whiteName: p1Name,
+      blackId: p2Id,
+      blackName: p2Name,
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       whiteTime: initialSeconds,
       blackTime: initialSeconds,
       timeControl: tc,
@@ -708,18 +1121,12 @@
       lastMoveAt: now
     };
 
-    matchmakingInProgress = true;
     const updates = {};
     updates['/matches/' + matchId] = matchPayload;
-    updates['/players/' + playerId + '/status'] = 'in-game';
-    updates['/players/' + opponentId + '/status'] = 'in-game';
-    db.ref().update(updates, error => {
-      matchmakingInProgress = false;
-      if (error) {
-        console.error('Matchmaking failed:', error);
-        db.ref('players/' + playerId).update({ status: 'searching' });
-      }
-    });
+    updates['/players/' + p1Id + '/status'] = 'in-game';
+    updates['/players/' + p2Id + '/status'] = 'in-game';
+
+    db.ref().update(updates);
   }
 
   function checkPlayerMatchAssignment() {
@@ -809,7 +1216,6 @@
 
     document.getElementById('topPlayerName').textContent = playerColor === 'white' ? matchData.blackName : matchData.whiteName;
     document.getElementById('topPlayerStatus').textContent = playerColor === 'white' ? 'Black' : 'White';
-    
     document.getElementById('bottomPlayerName').textContent = playerColor === 'white' ? matchData.whiteName : matchData.blackName;
 
     game.load(matchData.fen);
@@ -998,7 +1404,6 @@
     document.getElementById('bottomClock').textContent = formatTime(botSec);
 
     const isWhiteTurn = game.turn() === 'w';
-    
     const topClockEl = document.getElementById('topClock');
     const botClockEl = document.getElementById('bottomClock');
 
@@ -1081,9 +1486,6 @@
     db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: result, forfeitReason: `${playerNameStr} Resigned` });
   }
 
-  // ==========================================
-  // DRAW OFFER LOGIC
-  // ==========================================
   function offerDraw() {
     if (!activeMatchId || !activeMatchData || activeMatchData.status !== 'Live') return;
 
@@ -1098,9 +1500,7 @@
     }
 
     activeMatchData.drawOfferedBy = playerColor;
-    db.ref(`matches/${activeMatchId}`).update({
-      drawOfferedBy: playerColor
-    });
+    db.ref(`matches/${activeMatchId}`).update({ drawOfferedBy: playerColor });
 
     const btn = document.getElementById('offerDrawBtn');
     btn.textContent = 'Draw Offered';
@@ -1109,20 +1509,12 @@
 
   function acceptDraw() {
     if (!activeMatchId || activeMatchData?.status !== 'Live') return;
-
-    db.ref(`matches/${activeMatchId}`).update({
-      status: 'Completed',
-      result: '1/2-1/2',
-      drawOfferedBy: null
-    });
+    db.ref(`matches/${activeMatchId}`).update({ status: 'Completed', result: '1/2-1/2', drawOfferedBy: null });
   }
 
   function declineDraw() {
     if (!activeMatchId) return;
-
-    db.ref(`matches/${activeMatchId}`).update({
-      drawOfferedBy: null
-    });
+    db.ref(`matches/${activeMatchId}`).update({ drawOfferedBy: null });
   }
 
   // ==========================================
@@ -1198,9 +1590,10 @@
       if (m.status === 'Live') activeCount++;
 
       const statusTag = m.status === 'Live' ? '<span class="tag tag-live">● LIVE</span>' : `<span class="tag tag-done">${m.result || 'DONE'}</span>`;
-      
+      const koTag = m.isKnockout ? ' <span class="tag tag-knockout">KO</span>' : '';
+
       return `<tr>
-        <td><small>${id.substr(-6)}</small></td>
+        <td><small>${id.substr(-6)}</small>${koTag}</td>
         <td><strong>${escapeHtml(m.whiteName)}</strong> vs <strong>${escapeHtml(m.blackName)}</strong></td>
         <td>${statusTag}</td>
         <td>
@@ -1224,18 +1617,22 @@
     }
     hostControlsUnlocked = true;
     document.getElementById('hostControlsArea').classList.remove('hidden');
+    document.getElementById('adminBracketControls').classList.remove('hidden');
     document.getElementById('hostControlsLockedNotice').classList.add('hidden');
     document.getElementById('hostLoginBox').classList.add('hidden');
-    document.getElementById('roleBadge').textContent = 'Host/Admin Controls Unlocked';
+    document.getElementById('roleBadge').textContent = 'Host/Admin Unlocked';
     document.getElementById('roleBadge').className = 'badge yellow';
+    renderBracketView();
   }
 
   function lockHostControls() {
     hostControlsUnlocked = false;
     document.getElementById('hostControlsArea').classList.add('hidden');
+    document.getElementById('adminBracketControls').classList.add('hidden');
     document.getElementById('hostControlsLockedNotice').classList.remove('hidden');
     document.getElementById('hostLoginBox').classList.remove('hidden');
     document.getElementById('hostPasswordInput').value = '';
+    renderBracketView();
   }
 
   function requireHostAccess() {
@@ -1244,6 +1641,26 @@
       return false;
     }
     return true;
+  }
+
+  function onAdminModeChange() {
+    const mode = document.getElementById('tournamentModeSelect').value;
+    if (mode === 'knockout') {
+      document.getElementById('timeControlSelect').value = '10+5';
+    }
+    onAdminTimeControlChange();
+  }
+
+  function onAdminTimeControlChange() {
+    const tc = document.getElementById('timeControlSelect').value;
+    const mode = document.getElementById('tournamentModeSelect').value;
+    const warn = document.getElementById('knockoutRuleWarning');
+
+    if (mode === 'knockout' && tc !== '10+5') {
+      warn.classList.remove('hidden');
+    } else {
+      warn.classList.add('hidden');
+    }
   }
 
   function isTournamentOver() {
@@ -1311,29 +1728,33 @@
 
   function toggleRegistrationLock() {
     if (!requireHostAccess()) return;
-    db.ref('settings').update({
-      registrationLocked: !isRegistrationLocked
-    });
+    db.ref('settings').update({ registrationLocked: !isRegistrationLocked });
   }
 
   function kickoffTournament() {
     if (!requireHostAccess()) return;
     if (isTournamentOver()) return alert('This tournament has ended. Reset data before starting a new tournament.');
 
+    const mode = document.getElementById('tournamentModeSelect').value;
+    const tc = document.getElementById('timeControlSelect').value;
+
+    if (mode === 'knockout' && tc !== '10+5') {
+      return alert('Knockout Bracket Mode requires the 10+5 Rapid time control format.');
+    }
+
     const durationMinutes = Number(document.getElementById('tournamentDurationMinutes').value);
     if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
       return alert('Tournament duration must be between 1 and 1440 minutes.');
     }
 
-    const tc = document.getElementById('timeControlSelect').value;
     const updates = {};
-
     Object.keys(allPlayers).forEach(id => {
       if (allPlayers[id] && allPlayers[id].status === 'searching') {
         updates['/players/' + id + '/status'] = 'idle';
       }
     });
 
+    updates['/settings/mode'] = mode;
     updates['/settings/timeControl'] = tc;
     updates['/settings/registrationLocked'] = true;
     updates['/settings/tournamentStarted'] = true;
@@ -1345,18 +1766,19 @@
       if (err) {
         alert('Kickoff failed: ' + err.message);
       } else {
-        alert('🚀 Tournament kicked off! No matches were created. Players must click "Find Next Opponent" when they are online and ready.');
+        alert(`🚀 Tournament updated & kicked off! Mode: ${mode.toUpperCase()} (${tc}).`);
       }
     });
   }
 
   function resetTournamentData() {
     if (!requireHostAccess()) return;
-    if (!confirm('⚠️ Are you sure you want to wipe all matches, leaderboard scores, and player statuses?')) return;
+    if (!confirm('⚠️ Are you sure you want to wipe all matches, offers, bracket assignments, leaderboard scores, and player statuses?')) return;
 
-    const updates = { '/matches': null, '/settings': null };
+    const updates = { '/matches': null, '/offers': null, '/settings': null, '/bracket': DEFAULT_BRACKET };
     Object.keys(allPlayers).forEach(id => {
       updates['/players/' + id + '/status'] = 'idle';
+      updates['/players/' + id + '/missedPrompts'] = 0;
     });
     db.ref().update(updates, error => {
       if (error) {
@@ -1372,6 +1794,7 @@
       isGameOverHandled = false;
       lastMatchesListSignature = '';
       lastLeaderboardSignature = '';
+      lastBracketSignature = '';
       alert('Tournament data reset successfully.');
     });
   }
@@ -1383,13 +1806,15 @@
   }
 
   // ==========================================
-  // LIVE RANKED LEADERBOARD
+  // COMPLETE LEADERBOARD & TOP 8 HIGHLIGHT
   // ==========================================
   function updateLeaderboard() {
     let stats = {};
 
+    // 1. Initialize ALL signed up players
     for (let id in allPlayers) {
       stats[id] = {
+        id: id,
         name: allPlayers[id].name,
         agency: allPlayers[id].agency || '',
         email: allPlayers[id].email || '',
@@ -1401,14 +1826,15 @@
       };
     }
 
+    // 2. Accumulate match records
     for (let id in allMatches) {
       const m = allMatches[id];
       if (m.status === 'Completed' && m.result) {
         const wId = m.whiteId;
         const bId = m.blackId;
 
-        if (!stats[wId]) stats[wId] = { name: m.whiteName, agency: '', email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
-        if (!stats[bId]) stats[bId] = { name: m.blackName, agency: '', email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
+        if (!stats[wId]) stats[wId] = { id: wId, name: m.whiteName, agency: '', email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
+        if (!stats[bId]) stats[bId] = { id: bId, name: m.blackName, agency: '', email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
 
         stats[wId].played++;
         stats[bId].played++;
@@ -1430,6 +1856,7 @@
       }
     }
 
+    // Sort descending by points, then wins, then games played
     let sorted = Object.values(stats).sort((a, b) => b.points - a.points || b.wins - a.wins || a.played - b.played);
     const signature = JSON.stringify(sorted);
     if (signature === lastLeaderboardSignature) return;
@@ -1437,6 +1864,7 @@
 
     const tbody = document.getElementById('leaderboardBody');
     tbody.innerHTML = sorted.map((p, index) => {
+      const isTop8 = index < 8;
       let rankDisplay = `#${index + 1}`;
       let rankClass = '';
       
@@ -1444,19 +1872,219 @@
       else if (index === 1) { rankDisplay = '🥈 2nd'; rankClass = 'rank-2'; }
       else if (index === 2) { rankDisplay = '🥉 3rd'; rankClass = 'rank-3'; }
 
-      return `<tr>
+      const top8Tag = isTop8 ? '<span class="tag tag-top8">TOP 8 QUALIFIER</span>' : '';
+
+      return `<tr class="${isTop8 ? 'top8-row' : ''}">
         <td class="rank-badge ${rankClass}">${rankDisplay}</td>
         <td>
           <strong>${escapeHtml(p.name)}</strong>
           ${p.agency ? `<br><small style="color:var(--dict-blue); font-weight:600;">🏢 ${escapeHtml(p.agency)}</small>` : ''}
           <br><small style="color:var(--text-muted)">${escapeHtml(p.email || 'Email unavailable')}</small>
-          ${index < 8 ? '<br><span class="tag tag-live">TOP 8 QUALIFIER</span>' : ''}
+          ${top8Tag ? '<br>' + top8Tag : ''}
         </td>
         <td><strong>${p.points} pts</strong></td>
         <td>${p.played}</td>
         <td>${p.wins}W / ${p.draws}D / ${p.losses}L</td>
       </tr>`;
     }).join('') || '<tr><td colspan="5" style="color:var(--text-muted);">No standings available yet.</td></tr>';
+  }
+
+  // ==========================================
+  // BRACKET MANAGEMENT & KNOCKOUT PROGRESSION
+  // ==========================================
+  function renderBracketView() {
+    const container = document.getElementById('bracketContainer');
+    const signature = JSON.stringify(bracketState) + '|' + hostControlsUnlocked + '|' + (globalSettings.timeControl || '');
+    if (signature === lastBracketSignature) return;
+    lastBracketSignature = signature;
+
+    const tc = globalSettings.timeControl || '3+2';
+    const isRapid10 = tc === '10+5';
+    const canAdminSelect = hostControlsUnlocked && isRapid10;
+
+    const playerOptionsHtml = Object.keys(allPlayers).map(id => {
+      const p = allPlayers[id];
+      return `<option value="${id}">${escapeHtml(p.name)} (${escapeHtml(p.agency || 'DICT')})</option>`;
+    }).join('');
+
+    const rounds = [
+      { title: 'Quarterfinals', matches: ['qf1', 'qf2', 'qf3', 'qf4'] },
+      { title: 'Semifinals', matches: ['sf1', 'sf2'] },
+      { title: 'Finals', matches: ['f1'] }
+    ];
+
+    let html = '';
+
+    rounds.forEach(round => {
+      html += `<div class="bracket-round">
+        <div class="bracket-round-title">${round.title}</div>`;
+
+      round.matches.forEach(slotKey => {
+        const slotData = bracketState[slotKey] || { p1: null, p2: null, winner: null, matchId: null };
+        const liveMatch = slotData.matchId ? allMatches[slotData.matchId] : null;
+
+        const p1Name = allPlayers[slotData.p1]?.name || 'TBD Player';
+        const p2Name = allPlayers[slotData.p2]?.name || 'TBD Player';
+
+        const p1IsWinner = slotData.winner === slotData.p1 && slotData.p1 !== null;
+        const p2IsWinner = slotData.winner === slotData.p2 && slotData.p2 !== null;
+
+        let actionBtnHtml = '';
+        if (liveMatch && liveMatch.status === 'Live') {
+          actionBtnHtml = `<button class="secondary" style="padding:2px 6px; font-size:10px; width:100%; margin-top:4px;" onclick="spectateMatch('${slotData.matchId}')">👁️ Watch Live</button>`;
+        } else if (slotData.p1 && slotData.p2 && !slotData.winner && hostControlsUnlocked) {
+          actionBtnHtml = `<button class="success" style="padding:2px 6px; font-size:10px; width:100%; margin-top:4px;" onclick="adminLaunchKnockoutMatch('${slotKey}')">🚀 Launch Match</button>`;
+        }
+
+        html += `<div class="bracket-match ${liveMatch?.status === 'Live' ? 'active-match' : ''}">
+          <div style="font-size: 10px; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between;">
+            <span>MATCH ${slotKey.toUpperCase()}</span>
+            ${liveMatch?.status === 'Live' ? '<span class="tag tag-live">LIVE</span>' : ''}
+          </div>
+
+          <!-- Player 1 Slot -->
+          <div class="bracket-slot ${p1IsWinner ? 'winner' : ''}">
+            <span class="bracket-slot-name">${p1IsWinner ? '👑 ' : ''}${escapeHtml(p1Name)}</span>
+          </div>
+          ${canAdminSelect && slotKey.startsWith('qf') ? `
+            <select id="bracket_select_${slotKey}_p1" style="font-size:11px; padding:4px; margin-bottom:4px;">
+              <option value="">-- Assign Seed White --</option>
+              ${playerOptionsHtml}
+            </select>
+          ` : ''}
+
+          <!-- Player 2 Slot -->
+          <div class="bracket-slot ${p2IsWinner ? 'winner' : ''}">
+            <span class="bracket-slot-name">${p2IsWinner ? '👑 ' : ''}${escapeHtml(p2Name)}</span>
+          </div>
+          ${canAdminSelect && slotKey.startsWith('qf') ? `
+            <select id="bracket_select_${slotKey}_p2" style="font-size:11px; padding:4px;">
+              <option value="">-- Assign Seed Black --</option>
+              ${playerOptionsHtml}
+            </select>
+          ` : ''}
+
+          ${actionBtnHtml}
+        </div>`;
+      });
+
+      html += `</div>`;
+    });
+
+    container.innerHTML = html;
+
+    // Restore selected values for admin dropdowns
+    if (canAdminSelect) {
+      ['qf1', 'qf2', 'qf3', 'qf4'].forEach(slotKey => {
+        const slotData = bracketState[slotKey];
+        if (slotData) {
+          const selP1 = document.getElementById(`bracket_select_${slotKey}_p1`);
+          const selP2 = document.getElementById(`bracket_select_${slotKey}_p2`);
+          if (selP1 && slotData.p1) selP1.value = slotData.p1;
+          if (selP2 && slotData.p2) selP2.value = slotData.p2;
+        }
+      });
+    }
+  }
+
+  function saveAdminBracketSelections() {
+    if (!requireHostAccess()) return;
+    const tc = globalSettings.timeControl || '3+2';
+    if (tc !== '10+5') {
+      return alert('Knockout Bracket assignment requires 10+5 Rapid time control.');
+    }
+
+    const updates = {};
+    const slots = ['qf1', 'qf2', 'qf3', 'qf4'];
+
+    slots.forEach(slotKey => {
+      const selP1 = document.getElementById(`bracket_select_${slotKey}_p1`);
+      const selP2 = document.getElementById(`bracket_select_${slotKey}_p2`);
+
+      if (selP1 && selP2) {
+        updates[`/bracket/${slotKey}/p1`] = selP1.value || null;
+        updates[`/bracket/${slotKey}/p2`] = selP2.value || null;
+      }
+    });
+
+    db.ref().update(updates, err => {
+      if (err) alert('Failed to save bracket: ' + err.message);
+      else alert('✅ Knockout Bracket seeds saved successfully!');
+    });
+  }
+
+  function adminLaunchKnockoutMatch(slotKey) {
+    if (!requireHostAccess()) return;
+    const slotData = bracketState[slotKey];
+    if (!slotData || !slotData.p1 || !slotData.p2) {
+      return alert('Both players must be assigned to launch a knockout match.');
+    }
+
+    const tc = globalSettings.timeControl || '10+5';
+    const mId = 'match_ko_' + slotKey + '_' + Date.now();
+    const p1Obj = allPlayers[slotData.p1];
+    const p2Obj = allPlayers[slotData.p2];
+
+    const initialSeconds = tc === '10+5' ? 600 : 180;
+    const matchPayload = {
+      whiteId: slotData.p1,
+      whiteName: p1Obj?.name || 'Player 1',
+      blackId: slotData.p2,
+      blackName: p2Obj?.name || 'Player 2',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      whiteTime: initialSeconds,
+      blackTime: initialSeconds,
+      timeControl: tc,
+      status: 'Live',
+      isKnockout: true,
+      bracketSlot: slotKey,
+      whiteStrikes: 0,
+      blackStrikes: 0,
+      drawOfferedBy: null,
+      createdAt: Date.now(),
+      lastMoveAt: Date.now()
+    };
+
+    const updates = {};
+    updates['/matches/' + mId] = matchPayload;
+    updates['/bracket/' + slotKey + '/matchId'] = mId;
+    updates['/players/' + slotData.p1 + '/status'] = 'in-game';
+    updates['/players/' + slotData.p2 + '/status'] = 'in-game';
+
+    db.ref().update(updates, err => {
+      if (!err) alert(`🚀 Match ${slotKey.toUpperCase()} created and live!`);
+    });
+  }
+
+  function checkBracketMatchCompletions() {
+    if (!bracketState) return;
+
+    for (let slotKey in bracketState) {
+      const slotData = bracketState[slotKey];
+      if (slotData && slotData.matchId && !slotData.winner) {
+        const m = allMatches[slotData.matchId];
+        if (m && m.status === 'Completed' && m.result) {
+          let winnerId = null;
+          if (m.result === '1-0') winnerId = m.whiteId;
+          else if (m.result === '0-1') winnerId = m.blackId;
+
+          if (winnerId) {
+            const updates = {};
+            updates[`/bracket/${slotKey}/winner`] = winnerId;
+
+            // Automatically advance winner in bracket hierarchy
+            if (slotKey === 'qf1') updates['/bracket/sf1/p1'] = winnerId;
+            if (slotKey === 'qf2') updates['/bracket/sf1/p2'] = winnerId;
+            if (slotKey === 'qf3') updates['/bracket/sf2/p1'] = winnerId;
+            if (slotKey === 'qf4') updates['/bracket/sf2/p2'] = winnerId;
+            if (slotKey === 'sf1') updates['/bracket/f1/p1'] = winnerId;
+            if (slotKey === 'sf2') updates['/bracket/f1/p2'] = winnerId;
+
+            db.ref().update(updates);
+          }
+        }
+      }
+    }
   }
 </script>
 </body>
