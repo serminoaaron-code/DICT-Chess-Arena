@@ -1,3 +1,4 @@
+<a_file_content name="dict_chess_web_app.html" total_lines="1038">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -256,11 +257,12 @@
     <div class="full header-card">
       <div style="background: linear-gradient(135deg, #002270 0%, #0032a0 100%); color: white; padding: 25px 20px; text-align: center;">
         <h1 style="margin: 0; font-size: 26px; letter-spacing: 0.5px;">DICT Digital Chess Sportsfest 2026</h1>
-        <p style="margin: 6px 0 0; opacity: 0.85; font-size: 14px;">Official Realtime Tournament Engine — Swiss System & Knockout Championship</p>
+        <p style="margin: 6px 0 0; opacity: 0.85; font-size: 14px;">Official Realtime Tournament Engine — Multi-Server Support, Swiss & Bracket Systems</p>
       </div>
       <div class="header-status-bar">
         <span style="font-size: 13px; font-weight: 600; color: var(--dict-blue-dark);">Department of Information and Communications Technology</span>
         <div class="row">
+          <div id="serverBadge" class="badge">Server: 1</div>
           <div id="modeBadge" class="badge purple">Mode: Swiss System</div>
           <div id="statusBadge" class="badge green">🟢 Lobby Open</div>
           <div id="roleBadge" class="badge">Not Signed In</div>
@@ -334,11 +336,19 @@
       </div>
     </div>
 
-    <!-- Panel 1: Player Sign-In -->
+    <!-- Panel 1: Player Sign-In & Server Selection -->
     <div class="panel" id="authSection">
-      <h3>♟ Player Entry</h3>
+      <h3>♟ Player Entry & Server Selection</h3>
       <div id="authPanel" class="stack">
         <div id="registrationOpenBox">
+          <label>Select Server</label>
+          <select id="serverSelect" onchange="onServerChange(this.value)">
+            <option value="1">Server 1 (Default)</option>
+            <option value="2">Server 2</option>
+            <option value="3">Server 3</option>
+            <option value="4">Server 4</option>
+          </select>
+
           <label>Email Address (unique player identity)</label>
           <input id="playerEmail" type="email" placeholder="you@dict.gov.ph" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
           
@@ -349,7 +359,7 @@
           <input id="playerAgency" placeholder="e.g. Central Office / Region IVA / ICT Industry Development Bureau" maxlength="60">
 
           <p id="knockoutNoticeText" class="hidden" style="font-size: 12px; color: #6b21a8; background: #f3e8ff; padding: 8px; border-radius: 6px; margin: 8px 0 0;">
-            ℹ️ <strong>Knockout Mode Active:</strong> Only Admin-slotted players can proceed to knockout matches.
+            ℹ️ <strong>Knockout / Bracket Mode Active:</strong> Individual matches can be scheduled on different dates.
           </p>
 
           <button style="margin-top: 10px; width: 100%;" onclick="registerPlayer()">Enter Waiting Lobby</button>
@@ -383,20 +393,20 @@
             <span id="tournamentTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--dict-blue);">Not started</span>
           </div>
 
-          <label>Tournament Category / System Mode</label>
-          <select id="tournamentModeSelect" onchange="onAdminModeChange()">
-            <option value="swiss">Swiss System (Open Registration & Pairing Queue)</option>
-            <option value="knockout">Knockout Mode (Top 8 / Admin Assigned Bracket)</option>
-          </select>
-
           <label>Host Match Format / Time Control</label>
-          <select id="timeControlSelect" onchange="onAdminTimeControlChange()">
-            <option value="10+5">10+5 Rapid (10 mins + 5s increment) [Required for Knockout Bracket]</option>
-            <option value="3+2">3+2 Blitz (3 mins + 2s increment)</option>
+          <select id="timeControlSelect" onchange="onAdminFormatOrControlChange()">
+            <option value="10+5">10+5 Rapid</option>
+            <option value="3+2">3+2 Blitz</option>
           </select>
 
-          <div id="knockoutRuleWarning" class="hidden" style="background: #fffbeb; border: 1px solid var(--yellow); padding: 8px 10px; border-radius: 6px; font-size: 12px; color: #92400e;">
-            ⚠️ Bracket player placement is only available under <strong>10+5 Rapid</strong> time control.
+          <label>Tournament Category</label>
+          <select id="tournamentModeSelect" onchange="onAdminFormatOrControlChange()">
+            <!-- Dynamic options based on match format -->
+          </select>
+
+          <div id="bracketCountGroup" class="hidden">
+            <label>Number of Brackets</label>
+            <input id="bracketCountInput" type="number" min="1" max="8" value="1" onchange="renderBracketView()">
           </div>
 
           <label>Tournament Duration (minutes)</label>
@@ -414,12 +424,12 @@
       </div>
     </div>
 
-    <!-- Panel 3 (Full Width): 8-Player Interactive Bracket View (Knockout Mode) -->
+    <!-- Panel 3 (Full Width): Interactive Bracket View (Bracket / Knockout Modes) -->
     <div id="bracketPanel" class="panel full hidden">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
         <div>
-          <h3 style="margin:0;">🏆 Top 8 Knockout Championship Bracket</h3>
-          <span style="font-size: 12px; color: var(--text-muted);">Quarterfinals ➔ Semifinals ➔ Finals (10+5 Rapid)</span>
+          <h3 style="margin:0;" id="bracketPanelTitle">🏆 Tournament Bracket</h3>
+          <span style="font-size: 12px; color: var(--text-muted);" id="bracketPanelSubtitle">Quarterfinals ➔ Semifinals ➔ Finals (Individual Dates Supported)</span>
         </div>
         <div id="adminBracketControls" class="hidden row">
           <button class="success" style="padding: 6px 12px; font-size: 12px;" onclick="saveAdminBracketSelections()">💾 Assign Selected Bracket Slots</button>
@@ -452,13 +462,13 @@
       </div>
     </div>
 
-    <!-- Panel 5: Full Live Leaderboard with Top 8 Highlights -->
+    <!-- Panel 5: Full Live Leaderboard with Top Highlights -->
     <div class="panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
         <h3 style="margin:0;">🏆 Complete Leaderboard & Standings</h3>
-        <span class="tag tag-top8">ALL RECORDS (TOP 8 HIGHLIGHTED)</span>
+        <span class="tag tag-top8">ALL RECORDS</span>
       </div>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">All signed-in players are listed below. Top 8 automatically qualify for Knockout Mode.</p>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">All signed-in players on this server are listed below.</p>
       <div class="scroll">
         <table>
           <thead>
@@ -494,9 +504,11 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // ==========================================
-  // GLOBAL STATE VARIABLES
-  // ==========================================
+  // Multi-Server State
+  let currentServer = '1';
+  let serverDbPrefix = 'server_1/';
+
+  // Global State Variables
   let playerId = null;
   let playerNameStr = '';
   let playerEmailStr = '';
@@ -534,117 +546,172 @@
   let globalSettings = {};
   let bracketState = {};
 
+  // Active Firebase Listener References
+  let listeners = {};
+
   // Default empty 8-player bracket schema
-  const DEFAULT_BRACKET = {
-    qf1: { p1: null, p2: null, winner: null, matchId: null },
-    qf2: { p1: null, p2: null, winner: null, matchId: null },
-    qf3: { p1: null, p2: null, winner: null, matchId: null },
-    qf4: { p1: null, p2: null, winner: null, matchId: null },
-    sf1: { p1: null, p2: null, winner: null, matchId: null },
-    sf2: { p1: null, p2: null, winner: null, matchId: null },
-    f1:  { p1: null, p2: null, winner: null, matchId: null }
-  };
-
-  // ==========================================
-  // REALTIME DATABASE LISTENERS
-  // ==========================================
-  db.ref('settings').on('value', snapshot => {
-    globalSettings = snapshot.val() || {};
-    isRegistrationLocked = !!globalSettings.registrationLocked;
-    isTournamentStarted = !!globalSettings.tournamentStarted;
-    
-    if (globalSettings.timeControl) {
-      document.getElementById('timeControlSelect').value = globalSettings.timeControl;
-    }
-    if (globalSettings.mode) {
-      document.getElementById('tournamentModeSelect').value = globalSettings.mode;
-    }
-
-    updateSystemStatusUI();
-    handleGraceTimerSync(globalSettings.graceTimerEnd);
-    handleTournamentTimerSync(globalSettings.tournamentEndTime);
-    updatePlayerLobbyUI();
-    renderBracketView();
-  });
-
-  db.ref('bracket').on('value', snapshot => {
-    bracketState = snapshot.val() || DEFAULT_BRACKET;
-    renderBracketView();
-    updatePlayerLobbyUI();
-  });
-
-  const playersRef = db.ref('players');
-  playersRef.on('child_added', snapshot => {
-    allPlayers[snapshot.key] = snapshot.val() || {};
-    updateLeaderboard();
-    updatePlayerLobbyUI();
-    renderBracketView();
-  });
-  playersRef.on('child_changed', snapshot => {
-    allPlayers[snapshot.key] = snapshot.val() || {};
-    updateLeaderboard();
-    updatePlayerLobbyUI();
-    renderBracketView();
-    if (snapshot.key === playerId && allPlayers[playerId]?.status === 'searching') {
-      attemptAutoMatchmaking();
-    }
-  });
-  playersRef.on('child_removed', snapshot => {
-    delete allPlayers[snapshot.key];
-    updateLeaderboard();
-    updatePlayerLobbyUI();
-    renderBracketView();
-  });
-
-  const matchesRef = db.ref('matches');
-  function handleMatchRecordChange(snapshot) {
-    allMatches[snapshot.key] = snapshot.val() || {};
-    renderMatchesList();
-    updateLeaderboard();
-    checkBracketMatchCompletions();
-
-    if (isSpectator && spectatingMatchId && allMatches[spectatingMatchId]) {
-      syncSpectatorBoard(allMatches[spectatingMatchId]);
-    } else {
-      checkPlayerMatchAssignment();
-    }
+  function createDefaultBracket() {
+    return {
+      qf1: { p1: null, p2: null, winner: null, matchId: null },
+      qf2: { p1: null, p2: null, winner: null, matchId: null },
+      qf3: { p1: null, p2: null, winner: null, matchId: null },
+      qf4: { p1: null, p2: null, winner: null, matchId: null },
+      sf1: { p1: null, p2: null, winner: null, matchId: null },
+      sf2: { p1: null, p2: null, winner: null, matchId: null },
+      f1:  { p1: null, p2: null, winner: null, matchId: null }
+    };
   }
-  matchesRef.on('child_added', handleMatchRecordChange);
-  matchesRef.on('child_changed', handleMatchRecordChange);
-  matchesRef.on('child_removed', snapshot => {
-    delete allMatches[snapshot.key];
-    renderMatchesList();
-    updateLeaderboard();
-    if (activeMatchId === snapshot.key) returnToLobby();
-  });
 
-  // Listen for Match Offers (10s Accept/Decline) - Swiss Mode
-  db.ref('offers').on('value', snapshot => {
-    if (!playerId || isSpectator || activeMatchId) return;
-    if ((globalSettings.mode || 'swiss') === 'knockout') return; // Offers disabled in Knockout Mode
+  // ==========================================
+  // SERVER SWITCHING & DYNAMIC LISTENERS
+  // ==========================================
+  function onServerChange(serverVal) {
+    currentServer = serverVal;
+    serverDbPrefix = `server_${currentServer}/`;
+    document.getElementById('serverBadge').textContent = `Server: ${currentServer}`;
+    
+    // Detach old listeners and reset in-memory data
+    detachAllListeners();
+    allPlayers = {};
+    allMatches = {};
+    globalSettings = {};
+    bracketState = {};
+    
+    if (activeMatchId) returnToLobby();
+    
+    attachServerListeners();
+    updateSystemStatusUI();
+    updatePlayerLobbyUI();
+  }
 
-    const offers = snapshot.val() || {};
-    let myOfferKey = null;
-    let myOffer = null;
-
-    for (let key in offers) {
-      if ((offers[key].p1 === playerId || offers[key].p2 === playerId) && offers[key].status === 'pending') {
-        myOfferKey = key;
-        myOffer = offers[key];
-        break;
+  function detachAllListeners() {
+    for (let key in listeners) {
+      if (listeners[key] && listeners[key].ref) {
+        listeners[key].ref.off();
       }
     }
+    listeners = {};
+  }
 
-    if (myOffer) {
-      if (activeOfferId !== myOfferKey) {
-        activeOfferId = myOfferKey;
-        showMatchPromptModal(myOffer);
+  function attachServerListeners() {
+    // 1. Settings Listener
+    const settingsRef = db.ref(serverDbPrefix + 'settings');
+    settingsRef.on('value', snapshot => {
+      globalSettings = snapshot.val() || {};
+      isRegistrationLocked = !!globalSettings.registrationLocked;
+      isTournamentStarted = !!globalSettings.tournamentStarted;
+      
+      if (globalSettings.timeControl) {
+        document.getElementById('timeControlSelect').value = globalSettings.timeControl;
       }
-    } else if (activeOfferId) {
-      activeOfferId = null;
-      hideMatchPromptModal();
+      onAdminFormatOrControlChange(false);
+      if (globalSettings.mode) {
+        document.getElementById('tournamentModeSelect').value = globalSettings.mode;
+      }
+      if (globalSettings.bracketCount) {
+        document.getElementById('bracketCountInput').value = globalSettings.bracketCount;
+      }
+
+      updateSystemStatusUI();
+      handleGraceTimerSync(globalSettings.graceTimerEnd);
+      handleTournamentTimerSync(globalSettings.tournamentEndTime);
+      updatePlayerLobbyUI();
+      renderBracketView();
+    });
+    listeners.settings = { ref: settingsRef };
+
+    // 2. Bracket Listener
+    const bracketRef = db.ref(serverDbPrefix + 'bracket');
+    bracketRef.on('value', snapshot => {
+      bracketState = snapshot.val() || createDefaultBracket();
+      renderBracketView();
+      updatePlayerLobbyUI();
+    });
+    listeners.bracket = { ref: bracketRef };
+
+    // 3. Players Listener
+    const playersRef = db.ref(serverDbPrefix + 'players');
+    playersRef.on('child_added', snapshot => {
+      allPlayers[snapshot.key] = snapshot.val() || {};
+      updateLeaderboard();
+      updatePlayerLobbyUI();
+      renderBracketView();
+    });
+    playersRef.on('child_changed', snapshot => {
+      allPlayers[snapshot.key] = snapshot.val() || {};
+      updateLeaderboard();
+      updatePlayerLobbyUI();
+      renderBracketView();
+      if (snapshot.key === playerId && allPlayers[playerId]?.status === 'searching') {
+        attemptAutoMatchmaking();
+      }
+    });
+    playersRef.on('child_removed', snapshot => {
+      delete allPlayers[snapshot.key];
+      updateLeaderboard();
+      updatePlayerLobbyUI();
+      renderBracketView();
+    });
+    listeners.players = { ref: playersRef };
+
+    // 4. Matches Listener
+    const matchesRef = db.ref(serverDbPrefix + 'matches');
+    function handleMatchRecordChange(snapshot) {
+      allMatches[snapshot.key] = snapshot.val() || {};
+      renderMatchesList();
+      updateLeaderboard();
+      checkBracketMatchCompletions();
+
+      if (isSpectator && spectatingMatchId && allMatches[spectatingMatchId]) {
+        syncSpectatorBoard(allMatches[spectatingMatchId]);
+      } else {
+        checkPlayerMatchAssignment();
+      }
     }
-  });
+    matchesRef.on('child_added', handleMatchRecordChange);
+    matchesRef.on('child_changed', handleMatchRecordChange);
+    matchesRef.on('child_removed', snapshot => {
+      delete allMatches[snapshot.key];
+      renderMatchesList();
+      updateLeaderboard();
+      if (activeMatchId === snapshot.key) returnToLobby();
+    });
+    listeners.matches = { ref: matchesRef };
+
+    // 5. Offers Listener (10s Accept/Decline)
+    const offersRef = db.ref(serverDbPrefix + 'offers');
+    offersRef.on('value', snapshot => {
+      if (!playerId || isSpectator || activeMatchId) return;
+      const mode = globalSettings.mode || 'swiss';
+      if (mode !== 'swiss') return;
+
+      const offers = snapshot.val() || {};
+      let myOfferKey = null;
+      let myOffer = null;
+
+      for (let key in offers) {
+        if ((offers[key].p1 === playerId || offers[key].p2 === playerId) && offers[key].status === 'pending') {
+          myOfferKey = key;
+          myOffer = offers[key];
+          break;
+        }
+      }
+
+      if (myOffer) {
+        if (activeOfferId !== myOfferKey) {
+          activeOfferId = myOfferKey;
+          showMatchPromptModal(myOffer);
+        }
+      } else if (activeOfferId) {
+        activeOfferId = null;
+        hideMatchPromptModal();
+      }
+    });
+    listeners.offers = { ref: offersRef };
+  }
+
+  // Initial Listener Setup
+  attachServerListeners();
 
   // ==========================================
   // FAIR PLAY PROTECTION (ALT-TAB PROTECTION)
@@ -655,11 +722,11 @@
 
     if (document.hidden) {
       tabStrikes++;
-      db.ref(`matches/${activeMatchId}/${playerColor}Strikes`).set(tabStrikes);
+      db.ref(`${serverDbPrefix}matches/${activeMatchId}/${playerColor}Strikes`).set(tabStrikes);
 
       if (tabStrikes >= 3) {
         const winnerResult = playerColor === 'white' ? '0-1' : '1-0';
-        db.ref(`matches/${activeMatchId}`).update({
+        db.ref(`${serverDbPrefix}matches/${activeMatchId}`).update({
           status: 'Completed',
           result: winnerResult,
           forfeitReason: `${playerNameStr} Disqualified (3 Tab Switches)`
@@ -724,7 +791,6 @@
       return alert('Registration is currently locked by the host.');
     }
 
-    const mode = globalSettings.mode || 'swiss';
     const existingId = Object.keys(allPlayers).find(
       id => (allPlayers[id].email || '').toLowerCase() === email
     );
@@ -733,13 +799,12 @@
       playerId = existingId;
       playerNameStr = name;
       playerEmailStr = email;
-      db.ref('players/' + playerId).update({ name: name, agency: agency, online: true });
+      db.ref(`${serverDbPrefix}players/` + playerId).update({ name: name, agency: agency, online: true });
     } else {
-      // In Knockout Mode, players can enter lobby but match placement is Admin-managed
       playerNameStr = name;
       playerEmailStr = email;
       playerId = 'player_' + Math.random().toString(36).substr(2, 9);
-      db.ref('players/' + playerId).set({
+      db.ref(`${serverDbPrefix}players/` + playerId).set({
         name: name,
         email: email,
         agency: agency,
@@ -752,7 +817,7 @@
 
     isSpectator = false;
 
-    const playerRef = db.ref('players/' + playerId);
+    const playerRef = db.ref(`${serverDbPrefix}players/` + playerId);
     playerRef.child('online').onDisconnect().set(false);
     playerRef.child('online').set(true);
 
@@ -776,7 +841,7 @@
     document.getElementById('mainArenaPanel').classList.remove('hidden');
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('playerActionArea').classList.add('hidden');
-    document.getElementById('queueStatusText').textContent = 'Select any active match from the Live Matches panel or Knockout Bracket to spectate.';
+    document.getElementById('queueStatusText').textContent = 'Select any active match from the Live Matches panel or Bracket to spectate.';
   }
 
   function updateSystemStatusUI() {
@@ -788,16 +853,21 @@
     const knockoutNotice = document.getElementById('knockoutNoticeText');
 
     const mode = globalSettings.mode || 'swiss';
-    if (mode === 'knockout') {
-      modeBadge.textContent = 'Mode: Knockout System';
-      modeBadge.className = 'badge purple';
-      knockoutNotice.classList.remove('hidden');
-      document.getElementById('bracketPanel').classList.remove('hidden');
-    } else {
+    if (mode === 'swiss') {
       modeBadge.textContent = 'Mode: Swiss System';
       modeBadge.className = 'badge yellow';
       knockoutNotice.classList.add('hidden');
       document.getElementById('bracketPanel').classList.add('hidden');
+    } else if (mode === 'bracket') {
+      modeBadge.textContent = 'Mode: Bracket System';
+      modeBadge.className = 'badge purple';
+      knockoutNotice.classList.remove('hidden');
+      document.getElementById('bracketPanel').classList.remove('hidden');
+    } else if (mode === 'knockout') {
+      modeBadge.textContent = 'Mode: Knockout System';
+      modeBadge.className = 'badge purple';
+      knockoutNotice.classList.remove('hidden');
+      document.getElementById('bracketPanel').classList.remove('hidden');
     }
 
     if (isTournamentOver()) {
@@ -845,16 +915,16 @@
       return;
     }
 
-    if (mode === 'knockout') {
+    if (mode === 'bracket' || mode === 'knockout') {
       findBtn.classList.add('hidden');
-      const hasKnockoutMatch = getPlayerAssignedKnockoutMatch(playerId);
+      const hasBracketMatch = getPlayerAssignedKnockoutMatch(playerId);
 
-      if (hasKnockoutMatch) {
+      if (hasBracketMatch) {
         knockoutBtn.classList.remove('hidden');
-        statusTxt.textContent = `⚔️ You are assigned to Knockout Match (${hasKnockoutMatch.key.toUpperCase()}) vs ${hasKnockoutMatch.opponentName}. Click below to enter!`;
+        statusTxt.textContent = `⚔️ You are assigned to ${mode === 'bracket' ? 'Bracket' : 'Knockout'} Match (${hasBracketMatch.key.toUpperCase()}) vs ${hasBracketMatch.opponentName}. Click below to enter!`;
       } else {
         knockoutBtn.classList.add('hidden');
-        statusTxt.textContent = 'ℹ️ Knockout Mode is active. Waiting for Host Admin to assign your bracket slot...';
+        statusTxt.textContent = `ℹ️ ${mode === 'bracket' ? 'Bracket' : 'Knockout'} Mode is active. Waiting for Host Admin to assign your bracket slot...`;
       }
     } else {
       knockoutBtn.classList.add('hidden');
@@ -892,18 +962,16 @@
   function enterMyKnockoutMatch() {
     if (!playerId) return;
     const koInfo = getPlayerAssignedKnockoutMatch(playerId);
-    if (!koInfo) return alert('You do not have an active Knockout slot assigned.');
+    if (!koInfo) return alert('You do not have an active Bracket/Knockout slot assigned.');
 
     if (!koInfo.match.p1 || !koInfo.match.p2) {
       return alert('Your opponent is not yet determined for this bracket round.');
     }
 
-    // Launch or Join Match
     if (koInfo.match.matchId && allMatches[koInfo.match.matchId]) {
       const mData = allMatches[koInfo.match.matchId];
       setupMatch(koInfo.match.matchId, mData);
     } else {
-      // Create Knockout match
       const tc = globalSettings.timeControl || '10+5';
       const mId = 'match_ko_' + koInfo.key + '_' + Date.now();
       const p1Obj = allPlayers[koInfo.match.p1];
@@ -930,10 +998,10 @@
       };
 
       const updates = {};
-      updates['/matches/' + mId] = matchPayload;
-      updates['/bracket/' + koInfo.key + '/matchId'] = mId;
-      updates['/players/' + koInfo.match.p1 + '/status'] = 'in-game';
-      updates['/players/' + koInfo.match.p2 + '/status'] = 'in-game';
+      updates[`${serverDbPrefix}matches/` + mId] = matchPayload;
+      updates[`${serverDbPrefix}bracket/` + koInfo.key + '/matchId'] = mId;
+      updates[`${serverDbPrefix}players/` + koInfo.match.p1 + '/status'] = 'in-game';
+      updates[`${serverDbPrefix}players/` + koInfo.match.p2 + '/status'] = 'in-game';
 
       db.ref().update(updates, err => {
         if (!err) {
@@ -948,16 +1016,17 @@
   // ==========================================
   function toggleMatchQueue() {
     if (!playerId || isSpectator) return;
-    if ((globalSettings.mode || 'swiss') === 'knockout') return;
+    const mode = globalSettings.mode || 'swiss';
+    if (mode !== 'swiss') return;
     if (!isTournamentStarted) return alert('The host has not started the tournament yet.');
     if (isTournamentOver()) return alert('The tournament duration has ended.');
 
     const currentStatus = allPlayers[playerId]?.status;
 
     if (currentStatus === 'searching') {
-      db.ref('players/' + playerId).update({ status: 'idle' });
+      db.ref(`${serverDbPrefix}players/` + playerId).update({ status: 'idle' });
     } else {
-      db.ref('players/' + playerId).update({ status: 'searching' });
+      db.ref(`${serverDbPrefix}players/` + playerId).update({ status: 'searching' });
       attemptAutoMatchmaking();
     }
     updatePlayerLobbyUI();
@@ -965,7 +1034,8 @@
 
   function attemptAutoMatchmaking() {
     if (matchmakingInProgress || isTournamentOver() || !isTournamentStarted || !playerId) return;
-    if ((globalSettings.mode || 'swiss') === 'knockout') return;
+    const mode = globalSettings.mode || 'swiss';
+    if (mode !== 'swiss') return;
     if (allPlayers[playerId]?.status !== 'searching') return;
 
     const opponentEntry = Object.entries(allPlayers).find(([id, player]) =>
@@ -975,11 +1045,10 @@
 
     const [opponentId, opponent] = opponentEntry;
 
-    // Race condition prevention
     if (playerId > opponentId) return;
 
     matchmakingInProgress = true;
-    const offerId = 'offer_' + db.ref('offers').push().key;
+    const offerId = 'offer_' + db.ref(`${serverDbPrefix}offers`).push().key;
     const expiresAt = Date.now() + 10000;
 
     const offerPayload = {
@@ -994,9 +1063,9 @@
     };
 
     const updates = {};
-    updates['/offers/' + offerId] = offerPayload;
-    updates['/players/' + playerId + '/status'] = 'prompted';
-    updates['/players/' + opponentId + '/status'] = 'prompted';
+    updates[`${serverDbPrefix}offers/` + offerId] = offerPayload;
+    updates[`${serverDbPrefix}players/` + playerId + '/status'] = 'prompted';
+    updates[`${serverDbPrefix}players/` + opponentId + '/status'] = 'prompted';
 
     db.ref().update(updates, err => {
       matchmakingInProgress = false;
@@ -1032,23 +1101,23 @@
   function respondToOffer(accepted) {
     if (!activeOfferId) return;
 
-    db.ref('offers/' + activeOfferId).once('value').then(snap => {
+    db.ref(`${serverDbPrefix}offers/` + activeOfferId).once('value').then(snap => {
       const offer = snap.val();
       if (!offer || offer.status !== 'pending') return;
 
       const pKey = offer.p1 === playerId ? 'p1Resp' : 'p2Resp';
       const updates = {};
-      updates[`/offers/${activeOfferId}/${pKey}`] = accepted ? 'accepted' : 'declined';
+      updates[`${serverDbPrefix}offers/${activeOfferId}/${pKey}`] = accepted ? 'accepted' : 'declined';
 
       const otherResp = offer.p1 === playerId ? offer.p2Resp : offer.p1Resp;
 
       if (!accepted) {
-        updates[`/offers/${activeOfferId}/status`] = 'declined';
-        updates[`/players/${playerId}/status`] = 'idle';
+        updates[`${serverDbPrefix}offers/${activeOfferId}/status`] = 'declined';
+        updates[`${serverDbPrefix}players/${playerId}/status`] = 'idle';
         const otherId = offer.p1 === playerId ? offer.p2 : offer.p1;
-        updates[`/players/${otherId}/status`] = 'searching';
+        updates[`${serverDbPrefix}players/${otherId}/status`] = 'searching';
       } else if (otherResp === 'accepted') {
-        updates[`/offers/${activeOfferId}/status`] = 'fulfilled';
+        updates[`${serverDbPrefix}offers/${activeOfferId}/status`] = 'fulfilled';
         createLiveMatch(offer.p1, offer.p1Name, offer.p2, offer.p2Name);
       }
 
@@ -1060,7 +1129,7 @@
   function handleOfferTimeout(offer) {
     if (!offer || offer.status !== 'pending') return;
 
-    db.ref('offers/' + activeOfferId).once('value').then(snap => {
+    db.ref(`${serverDbPrefix}offers/` + activeOfferId).once('value').then(snap => {
       const curOffer = snap.val();
       if (!curOffer || curOffer.status !== 'pending') return;
 
@@ -1068,28 +1137,28 @@
       const p2NoResp = !curOffer.p2Resp;
 
       const updates = {};
-      updates[`/offers/${activeOfferId}/status`] = 'expired';
+      updates[`${serverDbPrefix}offers/${activeOfferId}/status`] = 'expired';
 
       [
         { id: curOffer.p1, noResp: p1NoResp, resp: curOffer.p1Resp },
         { id: curOffer.p2, noResp: p2NoResp, resp: curOffer.p2Resp }
       ].forEach(p => {
         if (p.resp === 'declined') {
-          updates[`/players/${p.id}/status`] = 'idle';
+          updates[`${serverDbPrefix}players/${p.id}/status`] = 'idle';
         } else if (p.noResp) {
           const curMissed = (allPlayers[p.id]?.missedPrompts || 0) + 1;
-          updates[`/players/${p.id}/missedPrompts`] = curMissed;
+          updates[`${serverDbPrefix}players/${p.id}/missedPrompts`] = curMissed;
 
           if (curMissed >= 3) {
-            updates[`/players/${p.id}/status`] = 'idle';
+            updates[`${serverDbPrefix}players/${p.id}/status`] = 'idle';
             if (p.id === playerId) {
               alert('⚠️ You were removed from the searching queue due to 3 missed match prompts.');
             }
           } else {
-            updates[`/players/${p.id}/status`] = 'searching';
+            updates[`${serverDbPrefix}players/${p.id}/status`] = 'searching';
           }
         } else {
-          updates[`/players/${p.id}/status`] = 'searching';
+          updates[`${serverDbPrefix}players/${p.id}/status`] = 'searching';
         }
       });
 
@@ -1100,7 +1169,7 @@
 
   function createLiveMatch(p1Id, p1Name, p2Id, p2Name) {
     const tc = globalSettings.timeControl || '3+2';
-    const matchId = 'match_' + db.ref('matches').push().key;
+    const matchId = 'match_' + db.ref(`${serverDbPrefix}matches`).push().key;
     const now = Date.now();
     const initialSeconds = tc === '10+5' ? 600 : 180;
 
@@ -1122,9 +1191,9 @@
     };
 
     const updates = {};
-    updates['/matches/' + matchId] = matchPayload;
-    updates['/players/' + p1Id + '/status'] = 'in-game';
-    updates['/players/' + p2Id + '/status'] = 'in-game';
+    updates[`${serverDbPrefix}matches/` + matchId] = matchPayload;
+    updates[`${serverDbPrefix}players/` + p1Id + '/status'] = 'in-game';
+    updates[`${serverDbPrefix}players/` + p2Id + '/status'] = 'in-game';
 
     db.ref().update(updates);
   }
@@ -1186,7 +1255,7 @@
     offerBtn.disabled = false;
 
     if (playerId) {
-      db.ref('players/' + playerId).update({ status: 'idle' });
+      db.ref(`${serverDbPrefix}players/` + playerId).update({ status: 'idle' });
     }
 
     document.getElementById('arena').classList.add('hidden');
@@ -1262,7 +1331,7 @@
     board.position(game.fen());
     highlightCheck();
 
-    db.ref('matches/' + activeMatchId).update({
+    db.ref(`${serverDbPrefix}matches/` + activeMatchId).update({
       fen: game.fen(),
       whiteTime: activeMatchData.whiteTime,
       blackTime: activeMatchData.blackTime,
@@ -1379,14 +1448,14 @@
         activeMatchData.whiteTime = Math.max(0, Number(activeMatchData.whiteTime || 0) - elapsed);
         if (activeMatchData.whiteTime === 0 && playerColor === 'black' && !isGameOverHandled) {
           isGameOverHandled = true;
-          db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: '0-1' });
+          db.ref(`${serverDbPrefix}matches/` + activeMatchId).update({ status: 'Completed', result: '0-1' });
           showGameOverBannerAndRedirect('⏱️ TIME OUT! Black wins!');
         }
       } else {
         activeMatchData.blackTime = Math.max(0, Number(activeMatchData.blackTime || 0) - elapsed);
         if (activeMatchData.blackTime === 0 && playerColor === 'white' && !isGameOverHandled) {
           isGameOverHandled = true;
-          db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: '1-0' });
+          db.ref(`${serverDbPrefix}matches/` + activeMatchId).update({ status: 'Completed', result: '1-0' });
           showGameOverBannerAndRedirect('⏱️ TIME OUT! White wins!');
         }
       }
@@ -1442,7 +1511,7 @@
 
     if (message) {
       isGameOverHandled = true;
-      db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: result });
+      db.ref(`${serverDbPrefix}matches/` + activeMatchId).update({ status: 'Completed', result: result });
       showGameOverBannerAndRedirect(message);
     }
   }
@@ -1483,7 +1552,7 @@
   function resignMatch() {
     if (!confirm('Are you sure you want to resign this match?')) return;
     const result = playerColor === 'white' ? '0-1' : '1-0';
-    db.ref('matches/' + activeMatchId).update({ status: 'Completed', result: result, forfeitReason: `${playerNameStr} Resigned` });
+    db.ref(`${serverDbPrefix}matches/` + activeMatchId).update({ status: 'Completed', result: result, forfeitReason: `${playerNameStr} Resigned` });
   }
 
   function offerDraw() {
@@ -1500,7 +1569,7 @@
     }
 
     activeMatchData.drawOfferedBy = playerColor;
-    db.ref(`matches/${activeMatchId}`).update({ drawOfferedBy: playerColor });
+    db.ref(`${serverDbPrefix}matches/${activeMatchId}`).update({ drawOfferedBy: playerColor });
 
     const btn = document.getElementById('offerDrawBtn');
     btn.textContent = 'Draw Offered';
@@ -1509,12 +1578,12 @@
 
   function acceptDraw() {
     if (!activeMatchId || activeMatchData?.status !== 'Live') return;
-    db.ref(`matches/${activeMatchId}`).update({ status: 'Completed', result: '1/2-1/2', drawOfferedBy: null });
+    db.ref(`${serverDbPrefix}matches/${activeMatchId}`).update({ status: 'Completed', result: '1/2-1/2', drawOfferedBy: null });
   }
 
   function declineDraw() {
     if (!activeMatchId) return;
-    db.ref(`matches/${activeMatchId}`).update({ drawOfferedBy: null });
+    db.ref(`${serverDbPrefix}matches/${activeMatchId}`).update({ drawOfferedBy: null });
   }
 
   // ==========================================
@@ -1643,23 +1712,35 @@
     return true;
   }
 
-  function onAdminModeChange() {
-    const mode = document.getElementById('tournamentModeSelect').value;
-    if (mode === 'knockout') {
-      document.getElementById('timeControlSelect').value = '10+5';
-    }
-    onAdminTimeControlChange();
-  }
-
-  function onAdminTimeControlChange() {
+  function onAdminFormatOrControlChange(preserveModeSelection = true) {
     const tc = document.getElementById('timeControlSelect').value;
-    const mode = document.getElementById('tournamentModeSelect').value;
-    const warn = document.getElementById('knockoutRuleWarning');
+    const modeSelect = document.getElementById('tournamentModeSelect');
+    const prevMode = preserveModeSelection ? modeSelect.value : globalSettings.mode;
 
-    if (mode === 'knockout' && tc !== '10+5') {
-      warn.classList.remove('hidden');
+    modeSelect.innerHTML = '';
+
+    if (tc === '10+5') {
+      modeSelect.innerHTML = `
+        <option value="swiss">Swiss System</option>
+        <option value="bracket">Bracket (Host picks number of brackets)</option>
+        <option value="knockout">Knockout (Quarter, Semis, Finals - Individual Dates)</option>
+      `;
+    } else if (tc === '3+2') {
+      modeSelect.innerHTML = `
+        <option value="swiss">Swiss System</option>
+        <option value="knockout">Knockout (Quarter, Semis, Finals - Individual Dates)</option>
+      `;
+    }
+
+    if (prevMode && modeSelect.querySelector(`option[value="${prevMode}"]`)) {
+      modeSelect.value = prevMode;
+    }
+
+    const bracketGroup = document.getElementById('bracketCountGroup');
+    if (modeSelect.value === 'bracket') {
+      bracketGroup.classList.remove('hidden');
     } else {
-      warn.classList.add('hidden');
+      bracketGroup.classList.add('hidden');
     }
   }
 
@@ -1679,12 +1760,12 @@
       const remaining = Math.max(0, Math.ceil((Number(endTime) - Date.now()) / 1000));
       display.textContent = remaining > 0 ? formatTime(remaining) : 'ENDED';
       if (remaining <= 0 && !globalSettings.tournamentEnded) {
-        db.ref('settings').update({ tournamentEnded: true, registrationLocked: true });
-        db.ref('matches').once('value').then(snapshot => {
+        db.ref(`${serverDbPrefix}settings`).update({ tournamentEnded: true, registrationLocked: true });
+        db.ref(`${serverDbPrefix}matches`).once('value').then(snapshot => {
           const matches = snapshot.val() || {};
           const updates = {};
           Object.keys(matches).forEach(id => {
-            if (matches[id].status === 'Live') updates['matches/' + id + '/status'] = 'Closed - Time Expired';
+            if (matches[id].status === 'Live') updates[`${serverDbPrefix}matches/` + id + '/status'] = 'Closed - Time Expired';
           });
           if (Object.keys(updates).length) db.ref().update(updates);
         });
@@ -1698,7 +1779,7 @@
     if (!requireHostAccess()) return;
     if (isTournamentOver()) return alert('The tournament has ended.');
     const graceEndTime = Date.now() + (5 * 60 * 1000);
-    db.ref('settings').update({
+    db.ref(`${serverDbPrefix}settings`).update({
       graceTimerEnd: graceEndTime,
       registrationLocked: false
     });
@@ -1718,7 +1799,7 @@
 
       if (remainingSec <= 0) {
         clearInterval(graceTimerInterval);
-        db.ref('settings').update({
+        db.ref(`${serverDbPrefix}settings`).update({
           registrationLocked: true,
           graceTimerEnd: null
         });
@@ -1728,19 +1809,16 @@
 
   function toggleRegistrationLock() {
     if (!requireHostAccess()) return;
-    db.ref('settings').update({ registrationLocked: !isRegistrationLocked });
+    db.ref(`${serverDbPrefix}settings`).update({ registrationLocked: !isRegistrationLocked });
   }
 
   function kickoffTournament() {
     if (!requireHostAccess()) return;
     if (isTournamentOver()) return alert('This tournament has ended. Reset data before starting a new tournament.');
 
-    const mode = document.getElementById('tournamentModeSelect').value;
     const tc = document.getElementById('timeControlSelect').value;
-
-    if (mode === 'knockout' && tc !== '10+5') {
-      return alert('Knockout Bracket Mode requires the 10+5 Rapid time control format.');
-    }
+    const mode = document.getElementById('tournamentModeSelect').value;
+    const bracketCount = Number(document.getElementById('bracketCountInput').value || 1);
 
     const durationMinutes = Number(document.getElementById('tournamentDurationMinutes').value);
     if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
@@ -1750,35 +1828,45 @@
     const updates = {};
     Object.keys(allPlayers).forEach(id => {
       if (allPlayers[id] && allPlayers[id].status === 'searching') {
-        updates['/players/' + id + '/status'] = 'idle';
+        updates[`${serverDbPrefix}players/` + id + '/status'] = 'idle';
       }
     });
 
-    updates['/settings/mode'] = mode;
-    updates['/settings/timeControl'] = tc;
-    updates['/settings/registrationLocked'] = true;
-    updates['/settings/tournamentStarted'] = true;
-    updates['/settings/tournamentEnded'] = false;
-    updates['/settings/tournamentDurationMinutes'] = durationMinutes;
-    updates['/settings/tournamentEndTime'] = Date.now() + durationMinutes * 60 * 1000;
+    updates[`${serverDbPrefix}settings/mode`] = mode;
+    updates[`${serverDbPrefix}settings/timeControl`] = tc;
+    updates[`${serverDbPrefix}settings/bracketCount`] = bracketCount;
+    updates[`${serverDbPrefix}settings/registrationLocked`] = true;
+    updates[`${serverDbPrefix}settings/tournamentStarted`] = true;
+    updates[`${serverDbPrefix}settings/tournamentEnded`] = false;
+    updates[`${serverDbPrefix}settings/tournamentDurationMinutes`] = durationMinutes;
+    updates[`${serverDbPrefix}settings/tournamentEndTime`] = Date.now() + durationMinutes * 60 * 1000;
+
+    if ((mode === 'bracket' || mode === 'knockout') && (!bracketState || Object.keys(bracketState).length === 0)) {
+      updates[`${serverDbPrefix}bracket`] = createDefaultBracket();
+    }
 
     db.ref().update(updates, err => {
       if (err) {
         alert('Kickoff failed: ' + err.message);
       } else {
-        alert(`🚀 Tournament updated & kicked off! Mode: ${mode.toUpperCase()} (${tc}).`);
+        alert(`🚀 Tournament updated & kicked off on Server ${currentServer}! Format: ${tc}, Category: ${mode.toUpperCase()}.`);
       }
     });
   }
 
   function resetTournamentData() {
     if (!requireHostAccess()) return;
-    if (!confirm('⚠️ Are you sure you want to wipe all matches, offers, bracket assignments, leaderboard scores, and player statuses?')) return;
+    if (!confirm(`⚠️ Are you sure you want to wipe all matches, offers, bracket assignments, leaderboard scores, and player statuses on Server ${currentServer}?`)) return;
 
-    const updates = { '/matches': null, '/offers': null, '/settings': null, '/bracket': DEFAULT_BRACKET };
+    const updates = {
+      [`${serverDbPrefix}matches`]: null,
+      [`${serverDbPrefix}offers`]: null,
+      [`${serverDbPrefix}settings`]: null,
+      [`${serverDbPrefix}bracket`]: createDefaultBracket()
+    };
     Object.keys(allPlayers).forEach(id => {
-      updates['/players/' + id + '/status'] = 'idle';
-      updates['/players/' + id + '/missedPrompts'] = 0;
+      updates[`${serverDbPrefix}players/` + id + '/status'] = 'idle';
+      updates[`${serverDbPrefix}players/` + id + '/missedPrompts'] = 0;
     });
     db.ref().update(updates, error => {
       if (error) {
@@ -1795,7 +1883,7 @@
       lastMatchesListSignature = '';
       lastLeaderboardSignature = '';
       lastBracketSignature = '';
-      alert('Tournament data reset successfully.');
+      alert(`Server ${currentServer} tournament data reset successfully.`);
     });
   }
 
@@ -1806,12 +1894,11 @@
   }
 
   // ==========================================
-  // COMPLETE LEADERBOARD & TOP 8 HIGHLIGHT
+  // COMPLETE LEADERBOARD
   // ==========================================
   function updateLeaderboard() {
     let stats = {};
 
-    // 1. Initialize ALL signed up players
     for (let id in allPlayers) {
       stats[id] = {
         id: id,
@@ -1826,7 +1913,6 @@
       };
     }
 
-    // 2. Accumulate match records
     for (let id in allMatches) {
       const m = allMatches[id];
       if (m.status === 'Completed' && m.result) {
@@ -1856,7 +1942,6 @@
       }
     }
 
-    // Sort descending by points, then wins, then games played
     let sorted = Object.values(stats).sort((a, b) => b.points - a.points || b.wins - a.wins || a.played - b.played);
     const signature = JSON.stringify(sorted);
     if (signature === lastLeaderboardSignature) return;
@@ -1864,7 +1949,6 @@
 
     const tbody = document.getElementById('leaderboardBody');
     tbody.innerHTML = sorted.map((p, index) => {
-      const isTop8 = index < 8;
       let rankDisplay = `#${index + 1}`;
       let rankClass = '';
       
@@ -1872,15 +1956,12 @@
       else if (index === 1) { rankDisplay = '🥈 2nd'; rankClass = 'rank-2'; }
       else if (index === 2) { rankDisplay = '🥉 3rd'; rankClass = 'rank-3'; }
 
-      const top8Tag = isTop8 ? '<span class="tag tag-top8">TOP 8 QUALIFIER</span>' : '';
-
-      return `<tr class="${isTop8 ? 'top8-row' : ''}">
+      return `<tr>
         <td class="rank-badge ${rankClass}">${rankDisplay}</td>
         <td>
           <strong>${escapeHtml(p.name)}</strong>
           ${p.agency ? `<br><small style="color:var(--dict-blue); font-weight:600;">🏢 ${escapeHtml(p.agency)}</small>` : ''}
           <br><small style="color:var(--text-muted)">${escapeHtml(p.email || 'Email unavailable')}</small>
-          ${top8Tag ? '<br>' + top8Tag : ''}
         </td>
         <td><strong>${p.points} pts</strong></td>
         <td>${p.played}</td>
@@ -1890,17 +1971,20 @@
   }
 
   // ==========================================
-  // BRACKET MANAGEMENT & KNOCKOUT PROGRESSION
+  // BRACKET MANAGEMENT & PROGRESSION
   // ==========================================
   function renderBracketView() {
     const container = document.getElementById('bracketContainer');
-    const signature = JSON.stringify(bracketState) + '|' + hostControlsUnlocked + '|' + (globalSettings.timeControl || '');
+    const signature = JSON.stringify(bracketState) + '|' + hostControlsUnlocked + '|' + (globalSettings.mode || '') + '|' + (globalSettings.bracketCount || 1);
     if (signature === lastBracketSignature) return;
     lastBracketSignature = signature;
 
-    const tc = globalSettings.timeControl || '3+2';
-    const isRapid10 = tc === '10+5';
-    const canAdminSelect = hostControlsUnlocked && isRapid10;
+    const mode = globalSettings.mode || 'swiss';
+    const numBrackets = globalSettings.bracketCount || 1;
+    const canAdminSelect = hostControlsUnlocked;
+
+    const modeTitle = mode === 'bracket' ? `🏆 Bracket Tournament (${numBrackets} Bracket${numBrackets > 1 ? 's' : ''})` : '🏆 Knockout Championship Bracket';
+    document.getElementById('bracketPanelTitle').textContent = modeTitle;
 
     const playerOptionsHtml = Object.keys(allPlayers).map(id => {
       const p = allPlayers[id];
@@ -1908,9 +1992,9 @@
     }).join('');
 
     const rounds = [
-      { title: 'Quarterfinals', matches: ['qf1', 'qf2', 'qf3', 'qf4'] },
-      { title: 'Semifinals', matches: ['sf1', 'sf2'] },
-      { title: 'Finals', matches: ['f1'] }
+      { title: 'Quarterfinals (Individual Dates)', matches: ['qf1', 'qf2', 'qf3', 'qf4'] },
+      { title: 'Semifinals (Individual Dates)', matches: ['sf1', 'sf2'] },
+      { title: 'Finals (Individual Dates)', matches: ['f1'] }
     ];
 
     let html = '';
@@ -1973,7 +2057,6 @@
 
     container.innerHTML = html;
 
-    // Restore selected values for admin dropdowns
     if (canAdminSelect) {
       ['qf1', 'qf2', 'qf3', 'qf4'].forEach(slotKey => {
         const slotData = bracketState[slotKey];
@@ -1989,10 +2072,6 @@
 
   function saveAdminBracketSelections() {
     if (!requireHostAccess()) return;
-    const tc = globalSettings.timeControl || '3+2';
-    if (tc !== '10+5') {
-      return alert('Knockout Bracket assignment requires 10+5 Rapid time control.');
-    }
 
     const updates = {};
     const slots = ['qf1', 'qf2', 'qf3', 'qf4'];
@@ -2002,14 +2081,14 @@
       const selP2 = document.getElementById(`bracket_select_${slotKey}_p2`);
 
       if (selP1 && selP2) {
-        updates[`/bracket/${slotKey}/p1`] = selP1.value || null;
-        updates[`/bracket/${slotKey}/p2`] = selP2.value || null;
+        updates[`${serverDbPrefix}bracket/${slotKey}/p1`] = selP1.value || null;
+        updates[`${serverDbPrefix}bracket/${slotKey}/p2`] = selP2.value || null;
       }
     });
 
     db.ref().update(updates, err => {
       if (err) alert('Failed to save bracket: ' + err.message);
-      else alert('✅ Knockout Bracket seeds saved successfully!');
+      else alert('✅ Bracket seeds saved successfully!');
     });
   }
 
@@ -2017,7 +2096,7 @@
     if (!requireHostAccess()) return;
     const slotData = bracketState[slotKey];
     if (!slotData || !slotData.p1 || !slotData.p2) {
-      return alert('Both players must be assigned to launch a knockout match.');
+      return alert('Both players must be assigned to launch a bracket match.');
     }
 
     const tc = globalSettings.timeControl || '10+5';
@@ -2046,10 +2125,10 @@
     };
 
     const updates = {};
-    updates['/matches/' + mId] = matchPayload;
-    updates['/bracket/' + slotKey + '/matchId'] = mId;
-    updates['/players/' + slotData.p1 + '/status'] = 'in-game';
-    updates['/players/' + slotData.p2 + '/status'] = 'in-game';
+    updates[`${serverDbPrefix}matches/` + mId] = matchPayload;
+    updates[`${serverDbPrefix}bracket/` + slotKey + '/matchId'] = mId;
+    updates[`${serverDbPrefix}players/` + slotData.p1 + '/status'] = 'in-game';
+    updates[`${serverDbPrefix}players/` + slotData.p2 + '/status'] = 'in-game';
 
     db.ref().update(updates, err => {
       if (!err) alert(`🚀 Match ${slotKey.toUpperCase()} created and live!`);
@@ -2070,15 +2149,14 @@
 
           if (winnerId) {
             const updates = {};
-            updates[`/bracket/${slotKey}/winner`] = winnerId;
+            updates[`${serverDbPrefix}bracket/${slotKey}/winner`] = winnerId;
 
-            // Automatically advance winner in bracket hierarchy
-            if (slotKey === 'qf1') updates['/bracket/sf1/p1'] = winnerId;
-            if (slotKey === 'qf2') updates['/bracket/sf1/p2'] = winnerId;
-            if (slotKey === 'qf3') updates['/bracket/sf2/p1'] = winnerId;
-            if (slotKey === 'qf4') updates['/bracket/sf2/p2'] = winnerId;
-            if (slotKey === 'sf1') updates['/bracket/f1/p1'] = winnerId;
-            if (slotKey === 'sf2') updates['/bracket/f1/p2'] = winnerId;
+            if (slotKey === 'qf1') updates[`${serverDbPrefix}bracket/sf1/p1`] = winnerId;
+            if (slotKey === 'qf2') updates[`${serverDbPrefix}bracket/sf1/p2`] = winnerId;
+            if (slotKey === 'qf3') updates[`${serverDbPrefix}bracket/sf2/p1`] = winnerId;
+            if (slotKey === 'qf4') updates[`${serverDbPrefix}bracket/sf2/p2`] = winnerId;
+            if (slotKey === 'sf1') updates[`${serverDbPrefix}bracket/f1/p1`] = winnerId;
+            if (slotKey === 'sf2') updates[`${serverDbPrefix}bracket/f1/p2`] = winnerId;
 
             db.ref().update(updates);
           }
@@ -2086,6 +2164,11 @@
       }
     }
   }
+
+  // Initialize UI controls on load
+  document.addEventListener('DOMContentLoaded', () => {
+    onAdminFormatOrControlChange(false);
+  });
 </script>
 </body>
 </html>
