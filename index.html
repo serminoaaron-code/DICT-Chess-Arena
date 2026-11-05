@@ -945,13 +945,17 @@
       updateLeaderboard();
       updatePlayerLobbyUI();
       renderBracketView();
+      // Re-check the queue whenever any player appears (fix: first searcher never matched)
+      if (playerId && allPlayers[playerId]?.status === 'searching') attemptAutoMatchmaking();
     });
     playersRef.on('child_changed', snapshot => {
       allPlayers[snapshot.key] = snapshot.val() || {};
       updateLeaderboard();
       updatePlayerLobbyUI();
       renderBracketView();
-      if (snapshot.key === playerId && allPlayers[playerId]?.status === 'searching') {
+      // Re-check the queue whenever ANY player's status changes, not only mine
+      // (fix: the first player searching was never matched until they clicked again)
+      if (playerId && allPlayers[playerId]?.status === 'searching') {
         attemptAutoMatchmaking();
       }
     });
