@@ -438,6 +438,88 @@
       .board-panel { order: 1; }
       .info-col { order: 2; display: grid; grid-template-columns: 1fr 1fr; }
     }
+    /* ===================== HOW TO START ===================== */
+    .nav-howto { color: var(--gold) !important; }
+    .nav-howto i { color: var(--gold) !important; }
+    .howto-link, .strip-link { font-weight: 800; color: var(--blue); white-space: nowrap; }
+    .strip-link { color: var(--navy-800); margin-left: auto; text-decoration: underline; }
+    .join-strip .strip-link + button { margin-left: 0; }
+    .tut-flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -2px 0 16px; }
+    .flow-chip { display: flex; align-items: center; gap: 8px; background: #eef3ff; border: 1px solid #d6e2ff; border-radius: 999px; padding: 7px 14px; font-size: .98rem; color: var(--ink); }
+    .flow-chip span { font-size: 1.2rem; }
+    .flow-arrow { font-style: normal; color: var(--gold); font-size: 1.3rem; font-weight: 900; }
+    .tut-tabs { display: flex; gap: 8px; margin-bottom: 14px; border-bottom: 2px solid var(--line); }
+    .tut-tab { border: 0; background: none; padding: 10px 18px; font-size: 1.12rem; font-weight: 800; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; font-family: inherit; }
+    .tut-tab.active { color: var(--navy-800); border-bottom-color: var(--gold); }
+    .tut-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .tut-step { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; background: #f7f9fd; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .tut-vis { position: relative; background: linear-gradient(180deg, #0d2a6d, #0a1f52); border-radius: 10px; padding: 14px; min-height: 168px; display: flex; align-items: center; justify-content: center; gap: 10px; overflow: hidden; color: #fff; }
+    .tut-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .tut-body p { margin: 0; color: #2b3a5c; line-height: 1.5; font-size: 1rem; }
+    .tut-title { display: flex; align-items: center; gap: 10px; font-size: 1.18rem; font-weight: 800; color: var(--ink); }
+    .tut-num { flex-shrink: 0; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--gold); color: #1a1200; font-weight: 900; font-size: .95rem; box-shadow: 0 0 0 4px rgba(255,194,26,.25); }
+    .tut-note { font-size: .9rem !important; color: var(--muted) !important; background: #fff8e1; border-left: 3px solid var(--gold); padding: 5px 9px; border-radius: 4px; }
+    .tut-show { align-self: flex-start; margin-top: auto; }
+    .tut-cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding: 14px 16px; background: linear-gradient(90deg, #0d2a6d, #1f56d8); color: #fff; border-radius: 10px; font-weight: 700; font-size: 1.05rem; }
+    .tut-cta .btn { background: var(--gold); color: #1a1200; }
+    /* mini UI pieces used in the visuals */
+    .mini-card { background: #fff; color: var(--ink); border-radius: 8px; padding: 10px 12px; box-shadow: 0 6px 16px rgba(0,0,0,.3); width: 100%; max-width: 250px; font-size: .82rem; }
+    .mini-card.narrow { max-width: 190px; } .mini-card.center { text-align: center; }
+    .mini-label { font-size: .62rem; font-weight: 800; text-transform: uppercase; color: var(--muted); letter-spacing: .3px; margin-top: 2px; }
+    .mini-field { border: 1px solid #d3dbe8; background: #f5f7fb; border-radius: 5px; padding: 4px 8px; margin: 2px 0 6px; color: #3d4a66; display: flex; justify-content: space-between; white-space: nowrap; overflow: hidden; }
+    .mini-field.code { border: 2px solid var(--blue); background: #f2f6ff; justify-content: center; letter-spacing: 2px; font-weight: 900; color: var(--ink); font-family: monospace; font-size: .95rem; margin-bottom: 2px; }
+    .mini-ok { color: #047857; font-weight: 800; font-size: .7rem; margin-bottom: 4px; }
+    .mini-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .mini-btn { display: block; text-align: center; border-radius: 6px; padding: 6px; font-weight: 800; color: #fff; background: var(--blue); font-size: .78rem; margin-top: 4px; white-space: nowrap; }
+    .mini-btn.big { padding: 10px 12px; font-size: .86rem; box-shadow: 0 0 0 3px rgba(255,194,26,.6), 0 6px 16px rgba(31,86,216,.5); }
+    .mini-btn.gold { background: var(--gold); color: #1a1200; } .mini-btn.green { background: #16a34a; } .mini-btn.red { background: var(--red); }
+    .mini-btn.ghost { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.3); }
+    .mini-btn.ghost.dark { background: #fff; color: var(--ink); border: 1px solid #d3dbe8; }
+    .mini-btn.xs { display: inline-block; padding: 2px 6px; font-size: .66rem; margin: 0; }
+    .mini-h { font-weight: 900; font-size: .9rem; margin-bottom: 6px; } .mini-h.blue { color: var(--blue); }
+    .mini-sub { color: var(--muted); font-size: .74rem; margin: 2px 0 6px; }
+    .mini-count { font-size: 1.3rem; font-weight: 900; color: var(--blue); margin: 2px 0 6px; }
+    .mini-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 0; border-top: 1px solid var(--line); font-size: .76rem; }
+    .mini-timer { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 4px; align-items: center; background: #eef3ff; border-radius: 5px; padding: 4px 6px; font-size: .68rem; margin-bottom: 4px; }
+    .mini-timer b { font-family: monospace; font-size: .8rem; }
+    .mini-board { width: 118px; flex-shrink: 0; aspect-ratio: 1; border-radius: 4px; background: repeating-conic-gradient(#f0d9b5 0 25%, #b58863 0 50%) 0 0 / 25% 25%; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+    .mini-side { display: flex; flex-direction: column; gap: 5px; width: 120px; }
+    .mini-clock { font-family: monospace; font-weight: 900; font-size: 1rem; text-align: center; background: rgba(255,255,255,.08); border-radius: 5px; padding: 3px; }
+    .mini-clock.on { color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+    .mini-strikes { display: flex; gap: 4px; align-items: center; font-size: .66rem; color: #b9c6e8; }
+    .mini-strikes i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.2); }
+    .mini-strikes i.on { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .mt { display: inline-block; font-size: .62rem; font-weight: 800; padding: 1px 6px; border-radius: 999px; background: #eef1f6; color: #3d4a66; }
+    .mt.gold { background: #fff3c4; color: #8a6d00; } .mt.green { background: #dcfce7; color: #047857; }
+    .mini-tags { display: flex; gap: 4px; justify-content: center; margin-top: 4px; flex-wrap: wrap; }
+    .ticket { background: #fff; color: var(--ink); border: 2px dashed var(--gold); border-radius: 10px; padding: 8px 10px; text-align: center; flex: 1; min-width: 0; }
+    .ticket.alt { border-color: #16a34a; }
+    .ticket-code { font-family: monospace; font-weight: 900; font-size: 1.05rem; letter-spacing: 2px; margin: 2px 0; }
+    .announce { background: #fff; color: var(--ink); border-radius: 10px; padding: 10px 14px; text-align: center; border-top: 5px solid var(--gold); box-shadow: 0 6px 16px rgba(0,0,0,.3); font-size: .84rem; }
+    .announce .ticket-code { font-size: 1.35rem; color: var(--blue); }
+    .srv-row { display: flex; gap: 5px; } .srv-dot { flex: 1; text-align: center; font-weight: 800; font-size: .7rem; border-radius: 4px; padding: 3px 0; background: #eef1f6; color: var(--muted); }
+    .srv-dot.on { background: var(--blue); color: #fff; }
+    .sn { display: inline-grid; place-items: center; width: 13px; height: 13px; border-radius: 50%; background: var(--blue); color: #fff; font-size: .55rem; margin-right: 4px; }
+    .arrow { color: var(--gold); font-size: 1.4rem; font-weight: 900; }
+    .modal-ish { border-top: 4px solid var(--blue); }
+    .mini-bracket { display: flex; align-items: center; gap: 6px; }
+    .mini-bracket .col { display: flex; flex-direction: column; gap: 10px; }
+    .mini-bracket .bm { background: #fff; color: var(--ink); border-radius: 6px; padding: 5px 9px; font-size: .72rem; font-weight: 700; line-height: 1.35; border-left: 3px solid var(--blue); }
+    .mini-bracket .bm.gold { border-left-color: var(--gold); padding: 10px; }
+    .mini-bracket .link { color: var(--gold); font-weight: 900; }
+    .call { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #1a1200; font-weight: 900; display: grid; place-items: center; font-size: .75rem; box-shadow: 0 0 0 4px rgba(255,194,26,.3); animation: callPulse 1.8s ease-in-out infinite; }
+    @keyframes callPulse { 50% { box-shadow: 0 0 0 8px rgba(255,194,26,.08); } }
+    /* "Show me" spotlight */
+    .tour-spot { position: relative; z-index: 5; outline: 4px solid var(--gold) !important; outline-offset: 4px; border-radius: 8px; animation: tourPulse 1s ease-in-out 3; }
+    @keyframes tourPulse { 50% { outline-color: rgba(255,194,26,.25); } }
+    .tour-tip { position: fixed; z-index: 10000; background: var(--gold); color: #1a1200; font-weight: 800; padding: 8px 14px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.3); pointer-events: none; font-size: .95rem; max-width: 280px; }
+    @media (max-width: 1400px) { .tut-steps { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .tut-step { grid-template-columns: 1fr; } .flow-arrow { display: none; } .flow-chip { width: 100%; } .tut-tab { flex: 1; padding: 10px 6px; font-size: 1rem; } }
+    @media (prefers-reduced-motion: reduce) { .call, .tour-spot { animation: none; } }
+    .vis-col { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
+    .vis-col .arrow { line-height: 1; font-size: 1.1rem; }
+    .tut-vis { flex-wrap: wrap; }
+    @media (max-width: 960px) { .view-page { grid-column: 1 / -1 !important; } }
   </style>
 </head>
 <body>
@@ -464,10 +546,11 @@
       <h3>⚔️ OPPONENT FOUND!</h3>
       <p style="font-size: 1.05rem; margin: 10px 0;">An opponent is ready to play. Accept to start?</p>
       <div style="font-size: 2rem; font-weight: 800; color: var(--blue); margin: 15px 0;">⏱️ <span id="promptCountdown">10</span>s</div>
-      <div class="grid2" style="margin-top: 15px;">
+      <div class="grid2" style="margin-top: 15px;" id="promptButtons">
         <button class="btn success" onclick="respondToOffer(true)">Accept</button>
         <button class="btn danger" onclick="respondToOffer(false)">Decline</button>
       </div>
+      <p id="promptWaiting" class="hidden" style="margin: 12px 0 0; font-weight: 700; color: #047857;">✅ You accepted — waiting for your opponent to accept...</p>
     </div>
   </div>
 
@@ -528,6 +611,7 @@
     <div id="joinStrip" class="join-strip">
       <i class="fa-solid fa-hand-point-right"></i>
       <span>You're not signed in yet. Enter the tournament code from the host to play.</span>
+      <a href="#" class="strip-link" onclick="showView('howto'); return false;">How to Start</a>
       <button type="button" onclick="focusJoin()">Join now →</button>
     </div>
     <div class="main-grid">
@@ -542,6 +626,8 @@
           <button data-view="admin" onclick="showView('admin')"><i class="fa-solid fa-shield-halved"></i> Host Admin</button>
           <div class="sep"></div>
           <button data-view="settings" onclick="showView('settings')"><i class="fa-solid fa-gear white"></i> Settings</button>
+          <div class="sep"></div>
+          <button data-view="howto" onclick="showView('howto')" class="nav-howto"><i class="fa-solid fa-circle-question"></i> How to Start</button>
         </nav>
       </aside>
 
@@ -588,7 +674,7 @@
             </div>
           </div>
 
-          <div class="navy-panel board-panel">
+          <div class="navy-panel board-panel" id="boardPanel">
             <!-- Live Chessboard Area -->
             <div id="arena" class="hidden">
               <div id="spectatorBanner" class="spec-banner hidden">👁️ SPECTATOR MODE — Watching Match Live (<span id="spectatorMatchId">--</span>)</div>
@@ -626,7 +712,7 @@
                   <div id="authSection">
                     <span class="join-ribbon"><i class="fa-solid fa-star"></i> Start here</span>
                     <h3><i class="fa-solid fa-chess-knight"></i> Join the Tournament</h3>
-                    <p class="sub">Pick your server, enter the code from the host, then type your name and agency.</p>
+                    <p class="sub">Pick your server, enter the code from the host, then type your name and agency. <a href="#" class="howto-link" onclick="showView('howto'); return false;">New here? How to Start →</a></p>
                     <div id="authPanel">
                       <div id="registrationOpenBox">
                         <label class="form-label"><span class="step-num">1</span>Select Server</label>
@@ -650,7 +736,7 @@
                           </div>
                         </div>
                         <p id="knockoutNoticeText" class="note purple hidden" style="margin: 10px 0 0;">ℹ️ <strong>Knockout / Bracket Mode Active:</strong> Individual matches can be scheduled on different dates.</p>
-                        <button class="btn block btn-join" onclick="registerPlayer()"><i class="fa-solid fa-right-to-bracket"></i> Join &amp; Enter Waiting Lobby</button>
+                        <button id="joinBtn" class="btn block btn-join" onclick="registerPlayer()"><i class="fa-solid fa-right-to-bracket"></i> Join &amp; Enter Waiting Lobby</button>
                         <button class="btn secondary block" style="margin-top: 8px;" onclick="enterSpectatorOnly()"><i class="fa-regular fa-eye"></i> Just Watch (Spectator)</button>
                       </div>
                       <div id="registrationClosedBox" class="note red hidden">
@@ -682,7 +768,7 @@
 
       <!-- DASHBOARD RIGHT -->
       <section class="right-col view" data-view-page="dashboard">
-        <div class="navy-panel">
+        <div class="navy-panel" id="liveCard">
           <div class="card-head"><i class="fa-solid fa-trophy"></i> Live Matches <button class="more" onclick="showView('matches')">View All <i class="fa-solid fa-arrow-right"></i></button></div>
           <table class="tbl">
             <thead><tr><th>Players</th><th>Server</th><th>Status</th><th>Time</th></tr></thead>
@@ -690,7 +776,7 @@
           </table>
         </div>
 
-        <div class="navy-panel chat">
+        <div class="navy-panel chat" id="chatPanel">
           <div class="card-head"><i class="fa-solid fa-comment-dots" style="color:#fff"></i> Chat <span class="chat-channel" id="chatChannelLabel">Lobby</span></div>
           <div class="chat-msgs" id="chatMessages"></div>
           <form class="chat-form" id="chatForm" autocomplete="off">
@@ -783,15 +869,15 @@
               </div>
             </div>
             <div class="grid2">
-              <button class="btn secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
+              <button id="graceBtn" class="btn secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
               <button class="btn secondary" onclick="toggleRegistrationLock()" id="lockToggleBtn">🔒 Lock Registration</button>
             </div>
-            <button class="btn" onclick="kickoffTournament()">🚀 Save Settings &amp; Kickoff</button>
+            <button id="kickoffBtn" class="btn" onclick="kickoffTournament()">🚀 Save Settings &amp; Kickoff</button>
             <div class="grid2">
               <button class="btn secondary" onclick="showView('matches')">🏆 Open Bracket / Matches</button>
               <button class="btn secondary" onclick="lockHostControls()">🔒 Lock Host Controls</button>
             </div>
-            <button class="btn danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
+            <button id="resetBtn" class="btn danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
           </div>
         </div>
 
@@ -891,11 +977,181 @@
           </ul>
         </div>
       </section>
+
+      <!-- ===================== HOW TO START VIEW ===================== -->
+      <section class="view view-page hidden" data-view-page="howto" style="grid-column: 2 / -1;">
+        <div class="white-panel page-card tut">
+          <h2 class="page-title"><i class="fa-solid fa-circle-question"></i> How to Start</h2>
+          <div class="tut-flow">
+            <div class="flow-chip"><span>👑</span><b>Host</b> creates the code &amp; sets up</div><i class="flow-arrow">➜</i>
+            <div class="flow-chip"><span>📣</span>Code is <b>shared</b> with players</div><i class="flow-arrow">➜</i>
+            <div class="flow-chip"><span>🎮</span>Players <b>join</b> &amp; queue</div><i class="flow-arrow">➜</i>
+            <div class="flow-chip"><span>♟️</span><b>Play</b> &amp; climb the leaderboard</div>
+          </div>
+          <div class="tut-tabs" role="tablist">
+            <button id="tutTabPlayer" class="tut-tab active" role="tab" onclick="tutTab('player')">🎮 For Players</button>
+            <button id="tutTabHost" class="tut-tab" role="tab" onclick="tutTab('host')">👑 For Hosts</button>
+          </div>
+          <div id="tutPlayer" class="tut-steps">
+            <article class="tut-step">
+              <div class="tut-vis"><div class="ticket"><div class="mini-label">Tournament code · Server 1</div><div class="ticket-code">D2GA-SMSK</div><div class="mini-tags"><span class="mt gold">Shared</span><span class="mt">Everyone uses this</span></div></div>
+          <div class="ticket alt"><div class="mini-label">Personal code</div><div class="ticket-code">K7Q3-XM2P</div><div class="mini-tags"><span class="mt green">✔ Verified</span><span class="mt">Only you</span></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">1</span>Get your code from the host</div>
+                <p>The host gives you a <b>tournament code</b>. It can be a <b>shared code</b> (one code for everyone) or a <b>personal code</b> just for you.</p><p class="tut-note">No email needed. Keep a personal code private — it is your login.</p>
+                
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-label"><span class="sn">1</span>Select server</div>
+            <div class="mini-field sel">Server 1 (Default) <span>▾</span></div>
+            <div class="srv-row"><span class="srv-dot on">S1</span><span class="srv-dot">S2</span><span class="srv-dot">S3</span><span class="srv-dot">S4</span></div></div>
+          <span class="call" style="top:14px; right:14px">1</span></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">2</span>Pick your server</div>
+                <p>Each server is its own tournament. Choose the server the host told you to join.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['serverSelect', 'lobby'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-label"><span class="sn">2</span>Tournament / access code</div>
+            <div class="mini-field code">D2GA-SMSK</div><div class="mini-ok">✔ Tournament code accepted</div>
+            <div class="mini-2"><div><div class="mini-label"><span class="sn">3</span>Name</div><div class="mini-field">Juan Dela Cruz</div></div>
+            <div><div class="mini-label"><span class="sn">4</span>Agency</div><div class="mini-field">Region IV-A</div></div></div></div>
+          <span class="call" style="top:34px; left:14px">2</span></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">3</span>Enter your code, name and agency</div>
+                <p>Type the code. A green check means it worked. Then type your display name and DICT agency / office. With a personal code, your name fills in automatically next time.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['playerCode', 'lobby'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="vis-col"><div class="mini-btn big">➜ Join &amp; Enter Waiting Lobby</div><div class="arrow">⬇</div>
+          <div class="mini-card narrow center"><b>Welcome, <span style="color:var(--blue)">Juan</span>!</b><div class="mini-btn">🔍 Find Next Opponent</div></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">4</span>Click “Join & Enter Waiting Lobby”</div>
+                <p>You are now a registered player. You can chat, and your name appears on the leaderboard after your first game.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['joinBtn', 'lobby'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card narrow center modal-ish"><div class="mini-h blue">⚔️ Opponent found!</div><div class="mini-count">⏱ 10s</div>
+            <div class="mini-2"><div class="mini-btn green">Accept</div><div class="mini-btn red">Decline</div></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">5</span>Find an opponent and accept within 10 seconds</div>
+                <p>After the host starts the tournament, click <b>Find Next Opponent</b>. When a match is found, press <b>Accept</b> within 10 seconds. Missing 3 prompts takes you out of the queue.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['findMatchBtn', 'lobby', 'joinCard'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-board"></div>
+          <div class="mini-side"><div class="mini-clock on">09:42</div><div class="mini-clock">10:00</div>
+            <div class="mini-strikes">FairPlay <i class="on"></i><i></i><i></i></div>
+            <div class="mini-2"><div class="mini-btn ghost">🤝 Draw</div><div class="mini-btn red">🏳 Resign</div></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">6</span>Play your match fairly</div>
+                <p>Click a piece, then click where it should go. Watch your clock. You can <b>Offer Draw</b> or <b>Resign</b>. Leaving the game tab gives a strike — <b>3 strikes = forfeit</b>.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['boardPanel'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-h">🏆 Leaderboard</div>
+            <div class="mini-row"><span>👑 Juan Dela Cruz <span style="color:#16a34a">✔</span></span><b>3.0</b></div>
+            <div class="mini-row"><span>🥈 Ana Reyes</span><b>2.5</b></div>
+            <div class="mini-row"><span>🥉 Ben Cruz</span><b>2.0</b></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">7</span>Check results and chat</div>
+                <p>Win = 1 point, draw = 0.5. See standings in the Leaderboard and live games in Live Matches. Only registered players can chat.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['lbPanel'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+          </div>
+          <div id="tutHost" class="tut-steps hidden">
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card narrow"><div class="mini-h">🔒 Host Admin Dashboard</div><div class="mini-label">Host admin password</div>
+            <div class="mini-field">••••</div><div class="mini-btn">🔓 Unlock Host Controls</div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">1</span>Unlock host controls</div>
+                <p>Enter the host password in the <b>Host Admin Dashboard</b> card (bottom-right of the dashboard) or in the Host Admin tab.</p>
+                <button class="btn sm tut-show" onclick="tourGo('dashboard', ['hostCard'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-label">Code type</div><div class="mini-field sel">Shared code — everyone <span>▾</span></div>
+            <div class="mini-label">Valid for</div><div class="mini-field sel">This server's tournament only <span>▾</span></div>
+            <div class="mini-btn gold">🔑 Generate Codes</div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">2</span>Create the tournament code</div>
+                <p>Go to <b>Host Admin → Player Access Codes</b>. Choose <b>Shared code</b> (one code for everyone) or <b>Individual codes</b> (one per player, verified). Choose this server or all servers, then click <b>Generate Codes</b>.</p><p class="tut-note">Individual codes: use “Download Unused Codes (CSV)” to hand them out one per person.</p>
+                <button class="btn sm tut-show" onclick="tourGo('admin', ['codeType', 'adminViewLocked'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="announce"><div class="mini-h">📣 DICT Chess Tournament</div><div>Server <b>1</b> · Code:</div><div class="ticket-code">D2GA-SMSK</div><div class="mini-sub">Open the site → Join the Tournament</div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">3</span>Share the code with players</div>
+                <p>Announce the shared code in your group chat or on screen, together with the server number. Players type it on the dashboard.</p>
+                
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-2"><div><div class="mini-label">Time control</div><div class="mini-field sel">10+5 Rapid <span>▾</span></div></div>
+            <div><div class="mini-label">Category</div><div class="mini-field sel">Swiss <span>▾</span></div></div></div>
+            <div class="mini-label">Duration (minutes)</div><div class="mini-field">120</div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">4</span>Set up the tournament</div>
+                <p>Pick the <b>time control</b> (10+5 Rapid or 3+2 Blitz), the <b>category</b> (Swiss, Bracket or Knockout) and the <b>duration</b> in minutes.</p>
+                <button class="btn sm tut-show" onclick="tourGo('admin', ['timeControlSelect', 'adminViewLocked'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-timer"><span>Grace</span><b style="color:#b45309">04:12</b><span>Timer</span><b style="color:var(--blue)">2:00:00</b></div>
+            <div class="mini-btn ghost dark">⏱ Start 5-Min Grace</div><div class="mini-btn">🚀 Save Settings &amp; Kickoff</div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">5</span>Open sign-ups, then kick off</div>
+                <p><b>Start 5-Min Grace</b> opens registration for 5 minutes. When everyone is in, click <b>Save Settings &amp; Kickoff</b>. The tournament timer starts and players can find opponents.</p>
+                <button class="btn sm tut-show" onclick="tourGo('admin', ['kickoffBtn', 'adminViewLocked'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-bracket"><div class="col"><div class="bm">Juan<br>Ana</div><div class="bm">Ben<br>Lia</div></div><div class="link">➜</div>
+            <div class="col"><div class="bm">Juan<br>Ben</div></div><div class="link">➜</div><div class="col"><div class="bm gold">🏆 Final</div></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">6</span>Bracket / Knockout: assign the matches</div>
+                <p>In Bracket or Knockout mode, open <b>Live Matches</b>, pick the two players for each slot (Quarterfinals → Semifinals → Finals) and click <b>Assign</b>. Players then see a <b>Launch Knockout Match</b> button.</p>
+                <button class="btn sm tut-show" onclick="tourGo('matches', ['bracketPanel', 'allMatchesTable'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card"><div class="mini-h">👥 Players on Server 1</div>
+            <div class="mini-row"><span>Juan Dela Cruz <span style="color:#16a34a">✔</span></span><span class="mt green">Online</span><span class="mini-btn red xs">🚫 Kick</span></div>
+            <div class="mini-row"><span>Ben Cruz</span><span class="mt gold">In game</span><span class="mini-btn red xs">🚫 Kick</span></div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">7</span>Watch, manage and kick players</div>
+                <p>Click any live match to spectate. In <b>Players on Server</b>, use <b>🚫 Kick</b> to remove someone (with a reason). You can also disable a personal code, or allow a player back.</p>
+                <button class="btn sm tut-show" onclick="tourGo('admin', ['hostPlayersTable', 'adminViewLocked'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+            <article class="tut-step">
+              <div class="tut-vis"><div class="mini-card narrow center"><div class="mini-h">🏁 Tournament Ended</div><div class="mini-sub">Final standings saved</div><div class="mini-btn red">⚠️ Reset All Data</div></div></div>
+              <div class="tut-body">
+                <div class="tut-title"><span class="tut-num">8</span>Finish and reset</div>
+                <p>When the tournament timer ends, new games stop and the leaderboard shows final standings. Use <b>Reset All Data</b> only to start a completely new tournament on this server.</p><p class="tut-note">Reset wipes matches and scores on this server. Codes are kept.</p>
+                <button class="btn sm tut-show" onclick="tourGo('admin', ['resetBtn', 'adminViewLocked'])"><i class="fa-solid fa-location-crosshairs"></i> Show me</button>
+              </div>
+            </article>
+          </div>
+          <div class="tut-cta">
+            <span>Ready? Players start on the dashboard.</span>
+            <button class="btn" onclick="focusJoin()"><i class="fa-solid fa-right-to-bracket"></i> Go to Join the Tournament</button>
+          </div>
+        </div>
+      </section>
     </div>
 
     <!-- ===================== BOTTOM ROW (DASHBOARD) ===================== -->
     <div class="bottom-grid view" data-view-page="dashboard">
-      <div class="white-panel lb-panel">
+      <div class="white-panel lb-panel" id="lbPanel">
         <div class="lb-head"><i class="fa-solid fa-trophy"></i> Leaderboard &amp; Standings
           <button class="records" onclick="showView('leaderboard')">View All Records <i class="fa-solid fa-arrow-right"></i></button>
         </div>
@@ -907,7 +1163,7 @@
         </div>
       </div>
 
-      <div class="navy-panel host-card">
+      <div class="navy-panel host-card" id="hostCard">
         <div class="card-head"><i class="fa-solid fa-lock"></i> Host Admin Dashboard</div>
         <div id="hostLoginBox">
           <label for="hostPasswordInput">Host Admin Password</label>
@@ -953,6 +1209,10 @@
   let allCodes = {};        // accessCodes (host only)
   let codesRef = null;
   let kickHandled = false;
+  let allOffers = {};
+  const fulfillingOffers = {};
+  let serverOffset = 0;                 // Firebase server clock offset (fixes devices with wrong clocks)
+  function nowMs() { return Date.now() + serverOffset; }
   let lastChatAt = 0;
   let isSpectator = false;
   let spectatingMatchId = null;
@@ -1115,11 +1375,9 @@
       updateLeaderboard();
       checkBracketMatchCompletions();
 
-      if (isSpectator && spectatingMatchId && allMatches[spectatingMatchId]) {
-        syncSpectatorBoard(allMatches[spectatingMatchId]);
-      } else {
-        checkPlayerMatchAssignment();
-      }
+      // Anyone watching a match (guest, signed-in player or host) gets live updates
+      if (spectatingMatchId && allMatches[spectatingMatchId]) syncSpectatorBoard(allMatches[spectatingMatchId]);
+      checkPlayerMatchAssignment();
     }
     matchesRef.on('child_added', handleMatchRecordChange);
     matchesRef.on('child_changed', handleMatchRecordChange);
@@ -1134,30 +1392,33 @@
     // 5. Offers Listener (10s Accept/Decline)
     const offersRef = db.ref(serverDbPrefix + 'offers');
     offersRef.on('value', snapshot => {
+      allOffers = snapshot.val() || {};
       if (!playerId || isSpectator || activeMatchId) return;
-      const mode = globalSettings.mode || 'swiss';
-      if (mode !== 'swiss') return;
+      if ((globalSettings.mode || 'swiss') !== 'swiss') return;
 
-      const offers = snapshot.val() || {};
-      let myOfferKey = null;
-      let myOffer = null;
-
-      for (let key in offers) {
-        if ((offers[key].p1 === playerId || offers[key].p2 === playerId) && offers[key].status === 'pending') {
-          myOfferKey = key;
-          myOffer = offers[key];
-          break;
-        }
+      let myOfferKey = null, myOffer = null;
+      for (const key in allOffers) {
+        const o = allOffers[key];
+        if (o && (o.p1 === playerId || o.p2 === playerId) && o.status === 'pending') { myOfferKey = key; myOffer = o; break; }
       }
 
       if (myOffer) {
+        // Both accepted -> start the match. Either player may do it; a transaction makes sure it happens once.
+        if (myOffer.p1Resp === 'accepted' && myOffer.p2Resp === 'accepted') {
+          setPromptWaiting(true, 'Both accepted — starting the match...');
+          fulfillOffer(myOfferKey);
+          return;
+        }
         if (activeOfferId !== myOfferKey) {
           activeOfferId = myOfferKey;
           showMatchPromptModal(myOffer);
         }
+        const mine = myOffer.p1 === playerId ? myOffer.p1Resp : myOffer.p2Resp;
+        setPromptWaiting(mine === 'accepted');
       } else if (activeOfferId) {
         activeOfferId = null;
         hideMatchPromptModal();
+        scheduleStuckCheck();
       }
     });
     listeners.offers = { ref: offersRef };
@@ -1165,6 +1426,7 @@
 
   // Initial Listener Setup
   attachServerListeners();
+  db.ref('.info/serverTimeOffset').on('value', snap => { serverOffset = Number(snap.val()) || 0; });
 
   // Global access-code setting (shared by all servers)
   db.ref('accessSettings').on('value', snap => {
@@ -1353,7 +1615,9 @@
       playerNameStr = name;
       const ref = db.ref(`${serverDbPrefix}players/` + playerId);
       if (existing) {
-        ref.update({ name, agency, verified, joinCode, online: true });
+        const hasLive = Object.values(allMatches).some(m => m && m.status === 'Live' && (m.whiteId === pid || m.blackId === pid));
+        const stale = !hasLive && ['prompted', 'in-game', 'searching'].includes(existing.status);
+        ref.update(Object.assign({ name, agency, verified, joinCode, online: true }, stale ? { status: 'idle' } : {}));
       } else {
         ref.set({ name, agency, verified, joinCode, status: 'idle', missedPrompts: 0, online: true, joinedAt: Date.now() });
       }
@@ -1630,7 +1894,7 @@
 
     matchmakingInProgress = true;
     const offerId = 'offer_' + db.ref(`${serverDbPrefix}offers`).push().key;
-    const expiresAt = Date.now() + 10000;
+    const expiresAt = nowMs() + 10000;
 
     const offerPayload = {
       p1: playerId,
@@ -1654,24 +1918,27 @@
     });
   }
 
+  function setPromptWaiting(waiting, text) {
+    document.getElementById('promptButtons').classList.toggle('hidden', waiting);
+    const w = document.getElementById('promptWaiting');
+    w.classList.toggle('hidden', !waiting);
+    if (text) w.textContent = '✅ ' + text;
+    else if (waiting) w.textContent = '✅ You accepted — waiting for your opponent to accept...';
+  }
+
   function showMatchPromptModal(offer) {
     const modal = document.getElementById('matchPromptModal');
     modal.classList.remove('hidden');
-
+    setPromptWaiting(false);
     if (offerCountdownInterval) clearInterval(offerCountdownInterval);
-
-    const updateCountdown = () => {
-      const left = Math.max(0, Math.ceil((offer.expiresAt - Date.now()) / 1000));
+    const offerId = activeOfferId;
+    const tick = () => {
+      const left = Math.max(0, Math.ceil(((offer.expiresAt || 0) - nowMs()) / 1000));
       document.getElementById('promptCountdown').textContent = left;
-
-      if (left <= 0) {
-        clearInterval(offerCountdownInterval);
-        handleOfferTimeout(offer);
-      }
+      if (left <= 0) { clearInterval(offerCountdownInterval); handleOfferTimeout(offerId); }
     };
-
-    updateCountdown();
-    offerCountdownInterval = setInterval(updateCountdown, 1000);
+    tick();
+    offerCountdownInterval = setInterval(tick, 500);
   }
 
   function hideMatchPromptModal() {
@@ -1680,78 +1947,97 @@
   }
 
   function respondToOffer(accepted) {
-    if (!activeOfferId) return;
+    const offerId = activeOfferId;
+    const offer = offerId && allOffers[offerId];
+    if (!offer || offer.status !== 'pending') return;
+    const isP1 = offer.p1 === playerId;
+    const otherId = isP1 ? offer.p2 : offer.p1;
 
-    db.ref(`${serverDbPrefix}offers/` + activeOfferId).once('value').then(snap => {
-      const offer = snap.val();
-      if (!offer || offer.status !== 'pending') return;
-
-      const pKey = offer.p1 === playerId ? 'p1Resp' : 'p2Resp';
-      const updates = {};
-      updates[`${serverDbPrefix}offers/${activeOfferId}/${pKey}`] = accepted ? 'accepted' : 'declined';
-
-      const otherResp = offer.p1 === playerId ? offer.p2Resp : offer.p1Resp;
-
-      if (!accepted) {
-        updates[`${serverDbPrefix}offers/${activeOfferId}/status`] = 'declined';
-        updates[`${serverDbPrefix}players/${playerId}/status`] = 'idle';
-        const otherId = offer.p1 === playerId ? offer.p2 : offer.p1;
-        updates[`${serverDbPrefix}players/${otherId}/status`] = 'searching';
-      } else if (otherResp === 'accepted') {
-        updates[`${serverDbPrefix}offers/${activeOfferId}/status`] = 'fulfilled';
-        createLiveMatch(offer.p1, offer.p1Name, offer.p2, offer.p2Name);
-      }
-
-      db.ref().update(updates);
-      hideMatchPromptModal();
-    });
+    if (accepted) {
+      // Just record my answer; the offers listener starts the match when both have accepted.
+      setPromptWaiting(true);
+      db.ref(`${serverDbPrefix}offers/${offerId}/${isP1 ? 'p1Resp' : 'p2Resp'}`).set('accepted');
+      return;
+    }
+    const updates = {};
+    updates[`${serverDbPrefix}offers/${offerId}/${isP1 ? 'p1Resp' : 'p2Resp'}`] = 'declined';
+    updates[`${serverDbPrefix}offers/${offerId}/status`] = 'declined';
+    updates[`${serverDbPrefix}players/${playerId}/status`] = 'idle';
+    updates[`${serverDbPrefix}players/${otherId}/status`] = 'searching';
+    db.ref().update(updates);
+    hideMatchPromptModal();
   }
 
-  function handleOfferTimeout(offer) {
-    if (!offer || offer.status !== 'pending') return;
+  // Exactly one client wins this transaction and creates the match.
+  function fulfillOffer(offerId) {
+    if (fulfillingOffers[offerId]) return;
+    fulfillingOffers[offerId] = true;
+    db.ref(`${serverDbPrefix}offers/${offerId}`).transaction(cur => {
+      if (!cur || cur.status !== 'pending' || cur.p1Resp !== 'accepted' || cur.p2Resp !== 'accepted') return; // abort
+      cur.status = 'fulfilled';
+      return cur;
+    }).then(res => {
+      if (res.committed) {
+        const o = res.snapshot.val();
+        createLiveMatch(o.p1, o.p1Name, o.p2, o.p2Name);
+      }
+    }).catch(err => console.error('Could not start match:', err))
+      .finally(() => { delete fulfillingOffers[offerId]; });
+  }
 
-    db.ref(`${serverDbPrefix}offers/` + activeOfferId).once('value').then(snap => {
-      const curOffer = snap.val();
-      if (!curOffer || curOffer.status !== 'pending') return;
+  function handleOfferTimeout(offerId) {
+    const cur = offerId && allOffers[offerId];
+    if (!cur || cur.status !== 'pending') return;
+    if (cur.p1Resp === 'accepted' && cur.p2Resp === 'accepted') return fulfillOffer(offerId);
 
-      const p1NoResp = !curOffer.p1Resp;
-      const p2NoResp = !curOffer.p2Resp;
-
-      const updates = {};
-      updates[`${serverDbPrefix}offers/${activeOfferId}/status`] = 'expired';
-
-      [
-        { id: curOffer.p1, noResp: p1NoResp, resp: curOffer.p1Resp },
-        { id: curOffer.p2, noResp: p2NoResp, resp: curOffer.p2Resp }
-      ].forEach(p => {
-        if (p.resp === 'declined') {
-          updates[`${serverDbPrefix}players/${p.id}/status`] = 'idle';
-        } else if (p.noResp) {
-          const curMissed = (allPlayers[p.id]?.missedPrompts || 0) + 1;
-          updates[`${serverDbPrefix}players/${p.id}/missedPrompts`] = curMissed;
-
-          if (curMissed >= 3) {
+    // Small grace so a last-second Accept still counts, then expire (only once, via transaction)
+    setTimeout(() => {
+      db.ref(`${serverDbPrefix}offers/${offerId}`).transaction(o => {
+        if (!o || o.status !== 'pending') return;
+        if (o.p1Resp === 'accepted' && o.p2Resp === 'accepted') return;
+        o.status = 'expired';
+        return o;
+      }).then(res => {
+        if (!res.committed) { const o = allOffers[offerId]; if (o && o.p1Resp === 'accepted' && o.p2Resp === 'accepted') fulfillOffer(offerId); return; }
+        const o = res.snapshot.val();
+        const updates = {};
+        [{ id: o.p1, resp: o.p1Resp }, { id: o.p2, resp: o.p2Resp }].forEach(p => {
+          if (p.resp === 'declined') {
             updates[`${serverDbPrefix}players/${p.id}/status`] = 'idle';
-            if (p.id === playerId) {
-              alert('⚠️ You were removed from the searching queue due to 3 missed match prompts.');
-            }
+          } else if (!p.resp) {
+            const missed = (allPlayers[p.id]?.missedPrompts || 0) + 1;
+            updates[`${serverDbPrefix}players/${p.id}/missedPrompts`] = missed;
+            updates[`${serverDbPrefix}players/${p.id}/status`] = missed >= 3 ? 'idle' : 'searching';
           } else {
-            updates[`${serverDbPrefix}players/${p.id}/status`] = 'searching';
+            updates[`${serverDbPrefix}players/${p.id}/status`] = 'searching'; // accepted: back in the queue
           }
-        } else {
-          updates[`${serverDbPrefix}players/${p.id}/status`] = 'searching';
-        }
-      });
-
-      db.ref().update(updates);
+        });
+        db.ref().update(updates);
+        const me = o.p1 === playerId ? o.p1Resp : o.p2Resp;
+        if (!me && (allPlayers[playerId]?.missedPrompts || 0) + 1 >= 3) alert('⚠️ You were removed from the queue after 3 missed match prompts.');
+      }).catch(err => console.error(err));
       hideMatchPromptModal();
-    });
+    }, 1500);
+  }
+
+  // Safety net: if I'm stuck as "prompted" with no offer and no match, put me back in the queue
+  function scheduleStuckCheck() {
+    setTimeout(() => {
+      if (!playerId || activeMatchId) return;
+      const me = allPlayers[playerId];
+      if (!me || me.status !== 'prompted') return;
+      const hasOffer = Object.values(allOffers).some(o => o && o.status === 'pending' && (o.p1 === playerId || o.p2 === playerId));
+      const hasLive = Object.values(allMatches).some(m => m && m.status === 'Live' && (m.whiteId === playerId || m.blackId === playerId));
+      if (!hasOffer && !hasLive) db.ref(`${serverDbPrefix}players/${playerId}`).update({ status: 'searching' });
+    }, 5000);
   }
 
   function createLiveMatch(p1Id, p1Name, p2Id, p2Name) {
+    const busy = Object.values(allMatches).some(m => m && m.status === 'Live' && [m.whiteId, m.blackId].some(id => id === p1Id || id === p2Id));
+    if (busy) return;
     const tc = globalSettings.timeControl || '3+2';
     const matchId = 'match_' + db.ref(`${serverDbPrefix}matches`).push().key;
-    const now = Date.now();
+    const now = nowMs();
     const initialSeconds = tc === '10+5' ? 600 : 180;
 
     const matchPayload = {
@@ -1851,6 +2137,8 @@
   // ==========================================
   function setupMatch(id, matchData) {
     showView('dashboard');
+    activeOfferId = null;
+    hideMatchPromptModal();
     activeMatchId = id;
     activeMatchData = matchData;
     spectatingMatchId = null;
@@ -1926,7 +2214,7 @@
       fen: game.fen(),
       whiteTime: activeMatchData.whiteTime,
       blackTime: activeMatchData.blackTime,
-      lastMoveAt: Date.now(),
+      lastMoveAt: nowMs(),
       lastMoveBy: playerId,
       drawOfferedBy: null,
       moves: movesList
@@ -2182,6 +2470,7 @@
   // LIVE SPECTATOR MODE
   // ==========================================
   function spectateMatch(matchId) {
+    if (activeMatchId) return alert('Finish your current match before watching another one.');
     showView('dashboard');
     spectatingMatchId = matchId;
     const matchData = allMatches[matchId];
@@ -2226,12 +2515,32 @@
 
     highlightCheck();
 
-    document.getElementById('topClock').textContent = formatTime(matchData.blackTime);
-    document.getElementById('bottomClock').textContent = formatTime(matchData.whiteTime);
+    tickSpectatorClocks();
+    const banner = document.getElementById('spectatorBanner');
+    if (matchData.status && matchData.status !== 'Live') {
+      const r = matchData.result === '1-0' ? 'White wins' : matchData.result === '0-1' ? 'Black wins' : matchData.result === '1/2-1/2' ? 'Draw' : (matchData.status || 'Finished');
+      banner.textContent = `🏁 MATCH FINISHED — ${r}${matchData.forfeitReason ? ' (' + matchData.forfeitReason + ')' : ''}`;
+    } else {
+      banner.innerHTML = `👁️ SPECTATOR MODE — Watching ${escapeHtml(matchData.whiteName)} vs ${escapeHtml(matchData.blackName)} live`;
+    }
+  }
 
-    const isWhiteTurn = game.turn() === 'w';
-    document.getElementById('topClock').className = 'clock ' + (!isWhiteTurn ? 'active' : '');
-    document.getElementById('bottomClock').className = 'clock ' + (isWhiteTurn ? 'active' : '');
+  // Spectator clocks count down every second (the side to move loses time since its last move)
+  function tickSpectatorClocks() {
+    const m = spectatingMatchId && allMatches[spectatingMatchId];
+    if (!m) return;
+    const blackToMove = String(m.fen || '').split(' ')[1] === 'b';
+    let w = Number(m.whiteTime) || 0, b = Number(m.blackTime) || 0;
+    if (m.status === 'Live' && m.lastMoveAt) {
+      const elapsed = Math.max(0, Math.floor((nowMs() - Number(m.lastMoveAt)) / 1000));
+      if (blackToMove) b = Math.max(0, b - elapsed); else w = Math.max(0, w - elapsed);
+    }
+    const top = document.getElementById('topClock'), bot = document.getElementById('bottomClock');
+    top.textContent = formatTime(b);
+    bot.textContent = formatTime(w);
+    const live = m.status === 'Live';
+    top.className = 'clock ' + (live && blackToMove ? 'active' : '') + (live && b <= 10 ? ' low' : '');
+    bot.className = 'clock ' + (live && !blackToMove ? 'active' : '') + (live && w <= 10 ? ' low' : '');
   }
 
   function closeSpectatorView() {
@@ -2901,12 +3210,13 @@
     if (!m || m.status !== 'Live') return '--:--';
     const side = String(m.fen || '').split(' ')[1] === 'b' ? 'black' : 'white';
     const base = Number(side === 'white' ? m.whiteTime : m.blackTime) || 0;
-    const elapsed = m.lastMoveAt ? Math.floor((Date.now() - Number(m.lastMoveAt)) / 1000) : 0;
+    const elapsed = m.lastMoveAt ? Math.floor((nowMs() - Number(m.lastMoveAt)) / 1000) : 0;
     return formatTime(Math.max(0, base - Math.max(0, elapsed)));
   }
   setInterval(() => {
     document.querySelectorAll('[data-live-time]').forEach(el => { el.textContent = liveTimeText(allMatches[el.dataset.liveTime]); });
     updateChatLock();
+    if (spectatingMatchId) tickSpectatorClocks();
   }, 1000);
 
   // ---------- Chat (lobby chat per server, or match chat while playing / watching) ----------
@@ -3162,6 +3472,48 @@
     const code = codeForPlayer(pid);
     if (code && allCodes[code]?.revoked && allCodes[code].type !== 'shared' && confirm(`Their code ${fmtCode(code)} is disabled. Enable it again?`)) updates['accessCodes/' + code + '/revoked'] = null;
     db.ref().update(updates);
+  }
+
+  // ---------- How to Start: tabs + "Show me" spotlight ----------
+  function tutTab(which) {
+    const host = which === 'host';
+    document.getElementById('tutPlayer').classList.toggle('hidden', host);
+    document.getElementById('tutHost').classList.toggle('hidden', !host);
+    document.getElementById('tutTabPlayer').classList.toggle('active', !host);
+    document.getElementById('tutTabHost').classList.toggle('active', host);
+  }
+  const TOUR_TIPS = {
+    serverSelect: 'Step 1 · Choose your server here', playerCode: 'Step 2 · Type the code from the host', joinBtn: 'Then click here to join',
+    lobby: 'You are already signed in — this is your lobby', joinCard: 'Sign in here first', findMatchBtn: 'Find an opponent here',
+    boardPanel: 'Your game is played here', lbPanel: 'Standings update after every game', hostCard: 'Enter the host password here',
+    codeType: 'Choose Shared or Individual codes', timeControlSelect: 'Set time control, category and duration',
+    kickoffBtn: 'Start the tournament here', bracketPanel: 'Assign bracket slots here', allMatchesTable: 'Live and finished matches',
+    hostPlayersTable: 'Kick or allow players back here', resetBtn: 'Only for a brand-new tournament',
+    adminViewLocked: 'Unlock host controls first'
+  };
+  function tourGo(view, ids) {
+    showView(view);
+    setTimeout(() => {
+      const el = ids.map(id => document.getElementById(id)).find(e => e && e.offsetParent !== null);
+      if (!el) return;
+      document.querySelectorAll('.tour-spot').forEach(e => e.classList.remove('tour-spot'));
+      document.querySelectorAll('.tour-tip').forEach(e => e.remove());
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('tour-spot');
+      const tip = document.createElement('div');
+      tip.className = 'tour-tip';
+      tip.textContent = '👉 ' + (TOUR_TIPS[el.id] || 'Here');
+      document.body.appendChild(tip);
+      const place = () => {
+        const r = el.getBoundingClientRect();
+        const top = r.top > 60 ? r.top - tip.offsetHeight - 12 : r.bottom + 12;
+        tip.style.top = Math.max(8, top) + 'px';
+        tip.style.left = Math.max(8, Math.min(window.innerWidth - tip.offsetWidth - 8, r.left)) + 'px';
+      };
+      place(); setTimeout(place, 450);
+      if (['INPUT', 'SELECT'].includes(el.tagName)) setTimeout(() => el.focus({ preventScroll: true }), 500);
+      setTimeout(() => { el.classList.remove('tour-spot'); tip.remove(); }, 4000);
+    }, 80);
   }
 
   // ---------- Match history (leaderboard "View") ----------
