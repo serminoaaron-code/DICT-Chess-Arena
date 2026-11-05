@@ -749,21 +749,30 @@
         <!-- Access codes + player management -->
         <div id="hostCodesArea" class="navy-panel page-card hidden">
           <h2 class="page-title"><i class="fa-solid fa-key"></i> Player Access Codes</h2>
-          <p class="muted" style="margin:-6px 0 12px;">Codes replace email. Each code belongs to one person: the first name and agency used with it are locked to that code, and the player signs in with the same code next time. Players who join with a code are marked <i class="fa-solid fa-circle-check vmark"></i> verified.</p>
+          <p class="muted" style="margin:-6px 0 12px;">Codes replace email. Two kinds:
+            <b>Shared code</b> — one code for everyone (announce it once; players type it with their name and agency).
+            <b>Individual codes</b> — one code per person; their name and agency are locked to it and they get the <i class="fa-solid fa-circle-check vmark"></i> verified mark.</p>
           <div class="stack" style="max-width: 760px;">
             <div class="timer-box">
               <span>Require an access code to join:</span>
               <button id="requireCodeBtn" class="btn sm success" onclick="toggleRequireCode()">ON</button>
             </div>
+            <div>
+              <label class="fld-label" for="codeType">Code type</label>
+              <select id="codeType" class="inp" onchange="onCodeTypeChange()">
+                <option value="shared">Shared code — all players use the same code</option>
+                <option value="individual">Individual codes — one code per player (verified)</option>
+              </select>
+            </div>
             <div class="grid2">
               <div>
                 <label class="fld-label" for="codeScope">Code is valid for</label>
                 <select id="codeScope" class="inp">
-                  <option value="server">Individual tournament (this server only)</option>
-                  <option value="all">Whole event (all servers)</option>
+                  <option value="server">This server's tournament only</option>
+                  <option value="all">All servers (whole event)</option>
                 </select>
               </div>
-              <div>
+              <div id="codeCountGroup" class="hidden">
                 <label class="fld-label" for="codeCount">How many codes</label>
                 <input id="codeCount" class="inp" type="number" min="1" max="200" value="10">
               </div>
@@ -779,7 +788,7 @@
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:16px 0 8px;">
             <select id="codeFilter" class="inp" style="max-width:200px; height:38px;" onchange="renderCodesTable()">
-              <option value="all">All codes</option><option value="unused">Unused</option><option value="used">Used</option><option value="revoked">Disabled</option>
+              <option value="all">All codes</option><option value="shared">Shared</option><option value="unused">Unused (individual)</option><option value="used">Used (individual)</option><option value="revoked">Disabled</option>
             </select>
             <span id="codeCounts" class="muted"></span>
             <button class="btn sm secondary" style="margin-left:auto;" onclick="copyUnusedCodes()">📋 Copy Unused</button>
@@ -787,7 +796,7 @@
           <p class="muted" style="margin:0 0 8px; font-size:.9rem;">Showing codes for Server <span class="codesServerLabel">1</span> plus whole-event codes.</p>
           <div class="scroll" style="max-height: 380px;">
             <table class="tbl">
-              <thead><tr><th>Code</th><th>Valid for</th><th>Batch</th><th>Assigned to</th><th>Status</th><th>Action</th></tr></thead>
+              <thead><tr><th>Code</th><th>Type</th><th>Valid for</th><th>Batch</th><th>Assigned to</th><th>Status</th><th>Action</th></tr></thead>
               <tbody id="codesTable"></tbody>
             </table>
           </div>
@@ -827,7 +836,7 @@
             <li>Leaving the game tab during a live match gives a strike. 3 strikes = automatic forfeit.</li>
             <li>Missing 3 match prompts removes you from the search queue.</li>
             <li>Win = 1 point, draw = 0.5 points, loss = 0 points.</li>
-            <li>No email is collected. Sign in with the access code from the host, plus your display name and agency.</li>
+            <li>No email is collected. Sign in with the tournament code (shared) or your personal code from the host, plus your display name and agency. Personal codes give a ✔ verified mark.</li>
             <li>Only registered players (and the host) can send chat messages. Spectators can read along.</li>
             <li>The host can remove a player from a server. Removed players cannot rejoin that server until the host allows them back.</li>
           </ul>
@@ -1192,7 +1201,11 @@
         const rec = snap.val();
         const problem = codeProblem(rec);
         if (problem) { status.className = 'code-status bad'; status.textContent = '✖ ' + problem; nameEl.disabled = false; agencyEl.disabled = false; return; }
-        if (rec.name) {
+        if (rec.type === 'shared') {
+          nameEl.disabled = false; agencyEl.disabled = false;
+          status.className = 'code-status ok';
+          status.textContent = '✔ Tournament code accepted. Enter your display name and agency.';
+        } else if (rec.name) {
           nameEl.value = rec.name; agencyEl.value = rec.agency || '';
           nameEl.disabled = true; agencyEl.disabled = true;
           status.className = 'code-status ok';
@@ -1231,13 +1244,24 @@
 
     registering = true;
     try {
-      let pid = null, verified = false;
+      let pid = null, verified = false, joinCode = null;
 
       if (code) {
         const snap = await db.ref('accessCodes/' + code).once('value');
         const rec = snap.val();
         const problem = codeProblem(rec);
         if (problem) return alert(problem);
+        if (rec.type === 'shared') {
+          // Shared code: everyone uses it; identity = display name + agency
+          if (name.length < 2) return alert('Please enter a display name (at least 2 characters).');
+          if (!agency) return alert('Please enter your DICT Agency, Region, or Bureau.');
+          pid = Object.keys(allPlayers).find(id => allPlayers[id].joinCode === code &&
+            normKey(allPlayers[id].name) === normKey(name) && normKey(allPlayers[id].agency) === normKey(agency)) || null;
+          if (isRegistrationLocked && !pid) return alert('Registration is locked by the host. Only players already registered on this server can sign in.');
+          if (pid && allPlayers[pid].kicked) return alert('🚫 You were removed from this server by the host.' + (allPlayers[pid].kickReason ? '\nReason: ' + allPlayers[pid].kickReason : ''));
+          if (!pid) pid = 'player_' + Math.random().toString(36).substr(2, 9);
+          joinCode = code;
+        } else {
         pid = 'p_' + code;
         verified = true;
 
@@ -1256,6 +1280,7 @@
           });
           if (!tx.committed || !tx.snapshot.val()) return alert('This code could not be used. Please ask the host.');
           name = tx.snapshot.val().name; agency = tx.snapshot.val().agency || '';
+        }
         }
       } else {
         // Codes turned off by the host: fall back to name + agency
@@ -1279,9 +1304,9 @@
       playerNameStr = name;
       const ref = db.ref(`${serverDbPrefix}players/` + playerId);
       if (existing) {
-        ref.update({ name, agency, verified, online: true });
+        ref.update({ name, agency, verified, joinCode, online: true });
       } else {
-        ref.set({ name, agency, verified, status: 'idle', missedPrompts: 0, online: true, joinedAt: Date.now() });
+        ref.set({ name, agency, verified, joinCode, status: 'idle', missedPrompts: 0, online: true, joinedAt: Date.now() });
       }
       try {
         localStorage.setItem(savedKey(), playerId);
@@ -2896,27 +2921,39 @@
     return Array.from(a, x => CODE_ALPHABET[x % CODE_ALPHABET.length]).join('');
   }
 
+  function onCodeTypeChange() {
+    document.getElementById('codeCountGroup').classList.toggle('hidden', document.getElementById('codeType').value === 'shared');
+  }
+
   function generateCodes() {
     if (!requireHostAccess()) return;
-    const count = Math.max(1, Math.min(200, Math.round(Number(document.getElementById('codeCount').value) || 0)));
+    const type = document.getElementById('codeType').value === 'individual' ? 'individual' : 'shared';
+    const count = type === 'shared' ? 1 : Math.max(1, Math.min(200, Math.round(Number(document.getElementById('codeCount').value) || 0)));
     const scope = document.getElementById('codeScope').value === 'all' ? 'all' : 'server';
     const batch = document.getElementById('codeBatch').value.trim().slice(0, 30);
     const where = scope === 'all' ? 'the whole event (all servers)' : `Server ${currentServer} only`;
-    if (!confirm(`Generate ${count} new access code(s) valid for ${where}?`)) return;
+    if (!confirm(type === 'shared'
+      ? `Create ONE shared code for ${where}?\n\nEvery player can use it with their own name and agency.`
+      : `Generate ${count} individual code(s) valid for ${where}? (one per player)`)) return;
     const updates = {}, made = [];
     while (made.length < count) {
       const c = randomCode();
       if (allCodes[c] || updates['accessCodes/' + c]) continue;
-      const rec = { scope, batch, createdAt: Date.now() };
+      const rec = { type, scope, batch, createdAt: Date.now() };
       if (scope === 'server') rec.server = String(currentServer);
       updates['accessCodes/' + c] = rec;
       made.push(c);
     }
     db.ref().update(updates, err => {
       if (err) return alert('Could not create codes: ' + err.message);
-      document.getElementById('codeFilter').value = 'unused';
+      document.getElementById('codeFilter').value = type === 'shared' ? 'shared' : 'unused';
       renderCodesTable();
-      alert(`🔑 ${made.length} code(s) created for ${where}.\n\nUse "Copy Unused" or "Download Unused Codes" to hand them out — one code per player.`);
+      if (type === 'shared') {
+        copyText(fmtCode(made[0]));
+        alert(`🔑 Shared code for ${where}:\n\n${fmtCode(made[0])}\n\n(Copied.) Announce this one code to all players.`);
+      } else {
+        alert(`🔑 ${made.length} individual code(s) created for ${where}.\n\nUse "Copy Unused" or "Download Unused Codes" to hand them out — one code per player.`);
+      }
     });
   }
 
@@ -2925,7 +2962,8 @@
       .filter(([, r]) => r && (r.scope === 'all' || String(r.server) === String(currentServer)))
       .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0) || a[0].localeCompare(b[0]));
   }
-  function codeState(r) { return r.revoked ? 'revoked' : (r.name ? 'used' : 'unused'); }
+  function codeState(r) { return r.revoked ? 'revoked' : r.type === 'shared' ? 'shared' : (r.name ? 'used' : 'unused'); }
+  function sharedUses(c) { return Object.values(allPlayers).filter(p => p && p.joinCode === c).length; }
   function scopeLabel(r) { return r.scope === 'all' ? 'Whole event' : `Server ${r.server}`; }
 
   function renderCodesTable() {
@@ -2933,25 +2971,29 @@
     if (!tb || !hostControlsUnlocked) return;
     const list = codesForThisServer();
     const f = document.getElementById('codeFilter').value;
-    const counts = { unused: 0, used: 0, revoked: 0 };
+    const counts = { shared: 0, unused: 0, used: 0, revoked: 0 };
     list.forEach(([, r]) => counts[codeState(r)]++);
-    document.getElementById('codeCounts').textContent = `${counts.unused} unused · ${counts.used} used · ${counts.revoked} disabled`;
+    document.getElementById('codeCounts').textContent = `${counts.shared} shared · ${counts.unused} unused · ${counts.used} used · ${counts.revoked} disabled`;
     const rows = list.filter(([, r]) => f === 'all' || codeState(r) === f).map(([c, r]) => {
       const st = codeState(r);
-      const pill = st === 'used' ? '<span class="pill green">Used</span>' : st === 'revoked' ? '<span class="pill red">Disabled</span>' : '<span class="pill gray">Unused</span>';
-      const who = r.name ? `<strong>${escapeHtml(r.name)}</strong><br><small class="muted">${escapeHtml(r.agency || '')}</small>` : '<span class="muted">—</span>';
+      const isShared = r.type === 'shared';
+      const typeHtml = isShared ? '<span class="pill gold">Shared</span>' : '<span class="pill gray">Individual</span>';
+      const pill = st === 'shared' ? '<span class="pill green">Active</span>' : st === 'used' ? '<span class="pill green">Used</span>' : st === 'revoked' ? '<span class="pill red">Disabled</span>' : '<span class="pill gray">Unused</span>';
+      const who = isShared ? `<span class="muted">${sharedUses(c)} player(s) on this server</span>` : r.name ? `<strong>${escapeHtml(r.name)}</strong><br><small class="muted">${escapeHtml(r.agency || '')}</small>` : '<span class="muted">—</span>';
       const actions = [`<button class="btn sm secondary" onclick="copyText('${fmtCode(c)}')" title="Copy">📋</button>`,
         r.revoked ? `<button class="btn sm success" onclick="setCodeRevoked('${c}', false)">Enable</button>`
                   : `<button class="btn sm danger" onclick="setCodeRevoked('${c}', true)">Disable</button>`];
       if (st === 'unused') actions.push(`<button class="btn sm secondary" onclick="deleteCode('${c}')" title="Delete">🗑</button>`);
-      return `<tr><td><span class="code-chip">${fmtCode(c)}</span></td><td>${scopeLabel(r)}</td><td>${escapeHtml(r.batch || '')}</td><td>${who}</td><td>${pill}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
+      return `<tr><td><span class="code-chip">${fmtCode(c)}</span></td><td>${typeHtml}</td><td>${scopeLabel(r)}</td><td>${escapeHtml(r.batch || '')}</td><td>${who}</td><td>${pill}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
     });
-    tb.innerHTML = rows.join('') || '<tr><td colspan="6" class="muted">No codes yet. Generate some above.</td></tr>';
+    tb.innerHTML = rows.join('') || '<tr><td colspan="7" class="muted">No codes yet. Generate some above.</td></tr>';
   }
 
   function setCodeRevoked(c, revoked) {
     if (!requireHostAccess()) return;
-    if (revoked && !confirm(`Disable code ${fmtCode(c)}? Its player will not be able to sign in with it.`)) return;
+    const shared = allCodes[c] && allCodes[c].type === 'shared';
+    if (revoked && !confirm(shared ? `Disable shared code ${fmtCode(c)}? NOBODY new will be able to sign in with it (players already in stay signed in).`
+                                   : `Disable code ${fmtCode(c)}? Its player will not be able to sign in with it.`)) return;
     db.ref('accessCodes/' + c).update({ revoked: revoked ? true : null });
   }
   function deleteCode(c) {
@@ -2989,6 +3031,7 @@
   // ==========================================
   function codeForPlayer(pid) {
     if (pid && pid.startsWith('p_')) return pid.slice(2);
+    if (allPlayers[pid] && allPlayers[pid].joinCode) return allPlayers[pid].joinCode;
     const hit = Object.entries(allCodes).find(([, r]) => r && r.pid === pid);
     return hit ? hit[0] : '';
   }
@@ -3010,7 +3053,7 @@
         : `<button class="btn sm danger" onclick="kickPlayer('${id}')">🚫 Kick</button>`;
       return `<tr><td><strong>${escapeHtml(p.name)}</strong>${p.verified ? ' <i class="fa-solid fa-circle-check vmark" title="Verified"></i>' : ''}${p.kickReason ? `<br><small class="muted">${escapeHtml(p.kickReason)}</small>` : ''}</td>
         <td>${escapeHtml(p.agency || '—')}</td>
-        <td>${code ? `<span class="code-chip">${fmtCode(code)}</span>` : '<span class="muted">none</span>'}</td>
+        <td>${code ? `<span class="code-chip">${fmtCode(code)}</span>${p.joinCode ? ' <small class="muted">shared</small>' : ''}` : '<span class="muted">none</span>'}</td>
         <td>${st}</td><td>${act}</td></tr>`;
     }).join('') || '<tr><td colspan="5" class="muted">No players on this server yet.</td></tr>';
   }
@@ -3022,7 +3065,7 @@
     const reason = prompt(`Remove "${p.name}" (${p.agency || 'no agency'}) from Server ${currentServer}?\n\nOptional reason shown to the player:`, '');
     if (reason === null) return;
     const code = codeForPlayer(pid);
-    const alsoDisable = code && allCodes[code] && !allCodes[code].revoked &&
+    const alsoDisable = code && allCodes[code] && !allCodes[code].revoked && allCodes[code].type !== 'shared' &&
       confirm(`Also disable their access code ${fmtCode(code)}? (They won't be able to sign in on any server.)`);
 
     const updates = {};
@@ -3050,7 +3093,7 @@
     const base = `${serverDbPrefix}players/${pid}/`;
     const updates = { [base + 'kicked']: null, [base + 'kickReason']: null, [base + 'kickedAt']: null };
     const code = codeForPlayer(pid);
-    if (code && allCodes[code]?.revoked && confirm(`Their code ${fmtCode(code)} is disabled. Enable it again?`)) updates['accessCodes/' + code + '/revoked'] = null;
+    if (code && allCodes[code]?.revoked && allCodes[code].type !== 'shared' && confirm(`Their code ${fmtCode(code)} is disabled. Enable it again?`)) updates['accessCodes/' + code + '/revoked'] = null;
     db.ref().update(updates);
   }
 
