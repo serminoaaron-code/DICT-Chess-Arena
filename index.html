@@ -1,13 +1,17 @@
-<a_file_content name="dict_chess_web_app.html" total_lines="1038">
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DICT Chess web app - Swiss & Knockout Bracket</title>
+  <title>DICT Digital Chess Tournament</title>
+  <link rel="icon" href="logo.png">
 
   <!-- External Libraries CSS & JS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
@@ -17,203 +21,370 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <style>
-    :root { 
-      --bg: #f4f6f9; 
-      --panel: #ffffff; 
-      --panel2: #f0f4f9; 
-      --dict-blue: #0032a0; 
-      --dict-blue-dark: #002270; 
-      --dict-red: #bf0d3e; 
-      --dict-yellow: #d8af00;
-      --text: #1f2937; 
-      --text-muted: #6b7280;
-      --border: #d1d5db; 
-      --red: #bf0d3e; 
-      --yellow: #d8af00;
-      --gold: #d97706;
-      --silver: #6b7280;
-      --bronze: #b45309;
-      --top8-bg: #eff6ff;
-      --top8-border: #3b82f6;
+    :root {
+      --navy-950: #061538;
+      --navy-900: #0a1f52;
+      --navy-800: #0c2766;
+      --navy-700: #12317d;
+      --blue: #1f56d8;
+      --blue-500: #2b6af0;
+      --blue-300: #6ea0ff;
+      --gold: #ffc21a;
+      --red: #e3122d;
+      --green: #22c55e;
+      --bg: #eef2f8;
+      --ink: #0b1a3d;
+      --muted: #5b6886;
+      --line: #dfe5ef;
+      --soft: #f5f7fb;
+      --sq-light: #eeeed2;
+      --sq-dark: #86a35f;
+      --shadow: 0 1px 2px rgba(11,26,61,.06), 0 8px 22px rgba(11,26,61,.10);
+      --glow: 0 0 0 1px rgba(110,160,255,.25), 0 10px 26px rgba(6,21,56,.35);
     }
-    
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
-    
-    button, input, select { font: inherit; padding: 10px 14px; border-radius: 6px; border: 0; outline: none; }
-    button { background: var(--dict-blue); color: #ffffff; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-    button.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
-    button.danger { background: var(--red); color: #fff; }
-    button.success { background: #10b981; color: #fff; }
-    button:hover { filter: brightness(1.15); transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
-    
-    input, select { background: #ffffff; border: 1px solid var(--border); color: var(--text); width: 100%; }
-    input:focus, select:focus { border-color: var(--dict-blue); }
-    label { display: block; color: var(--text-muted); margin: 8px 0 4px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: 'Roboto Condensed', 'Arial Narrow', Arial, sans-serif; color: var(--ink);
+      background:
+        radial-gradient(circle at 0 0, rgba(31,86,216,.10), transparent 30%),
+        linear-gradient(180deg, #f6f8fc 0%, #e9eef6 100%);
+      min-height: 100vh; padding-bottom: 24px;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    .hidden { display: none !important; }
 
-    .layout { max-width: 1240px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .full { grid-column: 1 / -1; }
-    
-    .header-card { 
-      padding: 0; 
-      overflow: hidden; 
-      border: 1px solid var(--border); 
-      border-radius: 10px; 
-      background: #ffffff; 
-      width: 100%;
+    /* ===================== HEADER ===================== */
+    .top-header {
+      position: relative; height: 160px; display: flex; align-items: center; overflow: hidden;
+      padding: 0 30px 0 110px;
+      background:
+        linear-gradient(115deg, transparent 0 70%, rgba(31,86,216,.12) 70% 71%, transparent 71% 100%),
+        linear-gradient(180deg, #ffffff 0%, #eef2f9 100%);
+    }
+    .circuit { position: absolute; left: 0; top: 0; width: 140px; height: 160px; opacity: .9; }
+    .brand { display: flex; align-items: center; gap: 22px; position: relative; z-index: 2; }
+    .brand-logo { width: 130px; height: 130px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; }
+    .brand-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .brand-logo .fb { width: 100%; height: 100%; border-radius: 50%; border: 6px solid var(--navy-800); display: grid; place-items: center; font-weight: 900; font-size: 1.6rem; color: var(--navy-800); }
+    .brand-name { font-size: 4rem; font-weight: 800; line-height: .85; color: var(--navy-800); letter-spacing: 1px; font-family: 'Arial Black', 'Roboto Condensed', sans-serif; }
+    .brand-sub { font-size: 1.05rem; font-weight: 500; line-height: 1.15; color: var(--navy-900); margin-top: 8px; text-transform: uppercase; }
+    .head-divider { width: 2px; height: 96px; background: var(--navy-800); margin: 0 34px 0 56px; opacity: .85; }
+    .title-block { text-align: center; position: relative; z-index: 2; }
+    .title-dict { font-weight: 900; font-style: italic; font-size: 3.2rem; line-height: .9; color: var(--navy-800); letter-spacing: 1px; }
+    .title-main { font-weight: 900; font-style: italic; font-size: 2.35rem; line-height: 1; color: var(--navy-800); letter-spacing: .5px; text-transform: uppercase; }
+    .title-tag { display: flex; align-items: center; gap: 14px; justify-content: center; margin-top: 8px; font-weight: 800; font-style: italic; letter-spacing: 4px; font-size: 1.1rem; color: var(--navy-800); }
+    .title-tag::before, .title-tag::after { content: ''; height: 2px; width: 90px; background: linear-gradient(90deg, transparent, var(--gold)); }
+    .title-tag::after { background: linear-gradient(90deg, var(--gold), transparent); }
+    .head-art { position: absolute; right: 0; top: 0; bottom: 0; width: 420px; }
+    .head-art .slash { position: absolute; top: -20px; bottom: -20px; transform: skewX(-32deg); }
+    .head-art .s1 { right: 40px; width: 120px; background: linear-gradient(180deg, #0c2766, #12317d); }
+    .head-art .s2 { right: 200px; width: 14px; background: var(--gold); }
+    .head-art .s3 { right: -60px; width: 120px; background: linear-gradient(180deg, #1f56d8, #0c2766); }
+    .head-art .sq { position: absolute; width: 24px; height: 24px; background: var(--gold); }
+    .head-art .king {
+      position: absolute; right: 230px; bottom: -6px; font-size: 9rem; line-height: 1;
+      background: linear-gradient(160deg, #3d6fe0 0%, #0c2766 55%, #061538 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(4px 4px 0 rgba(255,255,255,.6)) drop-shadow(0 8px 16px rgba(6,21,56,.35));
     }
 
-    .header-banner-img { 
-      width: 100%; 
-      max-width: 100%;
-      height: auto; 
-      display: block; 
-      object-fit: cover; 
-      max-height: 220px;
-      background: linear-gradient(135deg, var(--dict-blue) 0%, var(--dict-blue-dark) 100%);
-    }
-    
-    .header-status-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #ffffff; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
-    
-    .badge { font-size: 13px; font-weight: bold; background: #ffffff; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
-    .badge.green { border-color: #10b981; color: #047857; background: #ecfdf5; }
-    .badge.red { border-color: var(--red); color: var(--red); background: #fef2f2; }
-    .badge.yellow { border-color: var(--yellow); color: var(--yellow); background: #fffbeb; }
-    .badge.purple { border-color: #8b5cf6; color: #6d28d9; background: #f5f3ff; }
+    /* ===================== LAYOUT ===================== */
+    .wrap { padding: 8px 24px 0; max-width: 1760px; margin: 0 auto; }
+    .main-grid { display: grid; grid-template-columns: 222px minmax(0, 1fr) 468px; gap: 16px; align-items: stretch; }
+    .bottom-grid { display: grid; grid-template-columns: minmax(0, 1fr) 332px; gap: 16px; margin-top: 16px; }
 
-    .arena { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 15px; position: relative; }
-    #board { width: 100%; max-width: 440px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 2px solid var(--dict-blue); position: relative; }
-    
-    .player-card { background: var(--panel2); padding: 12px 16px; border-radius: 8px; width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
-    .player-info { display: flex; flex-direction: column; gap: 4px; }
-    .player-name { font-weight: bold; font-size: 15px; color: var(--dict-blue-dark); }
-    .player-status-tag { font-size: 11px; color: var(--text-muted); }
-    
-    .clock { font-size: 20px; font-family: monospace; font-weight: bold; background: #ffffff; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); color: var(--text); min-width: 80px; text-align: center; }
-    .clock.active { border-color: var(--dict-blue); color: var(--dict-blue); box-shadow: 0 0 10px rgba(0, 50, 160, 0.2); background: #eff6ff; }
-    .clock.low { border-color: var(--red); color: var(--red); animation: pulse 1s infinite; background: #fef2f2; }
-    
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-    .highlight-sq { background-color: rgba(216, 175, 0, 0.4) !important; }
-    .in-check {
-      background-color: rgba(255, 0, 0, 0.6) !important;
-      box-shadow: inset 0 0 10px rgba(191, 13, 62, 0.8) !important;
+    .navy-panel {
+      background: linear-gradient(180deg, #0d2a6d 0%, #0a1f52 100%); color: #fff; border-radius: 10px;
+      box-shadow: var(--glow); border: 1px solid rgba(110,160,255,.18);
     }
+    .white-panel { background: #fff; border-radius: 10px; box-shadow: var(--shadow); }
+
+    /* SIDEBAR */
+    .sidebar { padding: 26px 12px; position: relative; overflow: hidden; }
+    .sidebar::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 150px; opacity: .55;
+      background:
+        linear-gradient(90deg, rgba(31,86,216,.5) 0 18px, transparent 18px 36px, rgba(31,86,216,.35) 36px 54px, transparent 54px) 0 100% / 72px 36px repeat-x,
+        linear-gradient(90deg, transparent 0 18px, rgba(31,86,216,.4) 18px 36px, transparent 36px) 0 calc(100% - 36px) / 72px 36px repeat-x;
+    }
+    .nav { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1; }
+    .nav button {
+      display: flex; align-items: center; gap: 16px; width: 100%; height: 58px; padding: 0 16px;
+      background: transparent; border: 1px solid transparent; border-radius: 8px; color: #fff;
+      font-size: 1.25rem; font-weight: 500; cursor: pointer; text-align: left; transition: background .15s;
+    }
+    .nav button i { width: 34px; text-align: center; font-size: 1.65rem; color: var(--gold); }
+    .nav button i.white { color: #fff; }
+    .nav button:hover { background: rgba(255,255,255,.06); }
+    .nav button.active {
+      background: linear-gradient(180deg, #2b6af0, #1f56d8); border-color: rgba(160,195,255,.7);
+      box-shadow: 0 0 14px rgba(43,106,240,.6), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .nav button.active i { color: #fff; }
+    .nav .sep { height: 1px; background: rgba(255,255,255,.08); margin: 0 6px; }
+
+    /* CENTER */
+    .center-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .vs-bar { position: relative; height: 84px; padding: 0 22px; display: flex; align-items: center; overflow: hidden; }
+    .vs-bar::before {
+      content: ''; position: absolute; left: 50%; top: -10px; bottom: -10px; width: 210px; margin-left: -105px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.16) 30%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.16) 70%, transparent);
+      transform: skewX(-20deg);
+    }
+    .vs-bar::after {
+      content: ''; position: absolute; left: 50%; top: -10px; bottom: -10px; width: 6px; margin-left: -70px;
+      background: var(--gold); transform: skewX(-20deg); box-shadow: 136px 0 0 var(--gold);
+    }
+    .vs-side { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; position: relative; z-index: 2; }
+    .vs-side.right { flex-direction: row-reverse; text-align: right; }
+    .vs-avatar { width: 60px; height: 60px; border-radius: 50%; background: #fff; color: var(--navy-800); display: grid; place-items: center; font-size: 2.2rem; flex-shrink: 0; box-shadow: 0 0 0 4px rgba(43,106,240,.6); }
+    .vs-avatar.black { background: #121a2e; color: #fff; }
+    .vs-name { font-size: 1.65rem; font-weight: 700; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+    .chip { display: inline-block; background: var(--blue); color: #fff; font-weight: 600; font-size: .95rem; padding: 2px 12px; border-radius: 4px; margin-top: 6px; }
+    .vs-text {
+      position: relative; z-index: 3; font-size: 3.2rem; font-weight: 900; font-style: italic; color: #fff; padding: 0 30px;
+      text-shadow: 3px 3px 0 var(--blue), 0 0 20px rgba(110,160,255,.6);
+    }
+    .vs-clock-row { display: flex; gap: 0; position: relative; z-index: 2; margin-top: -2px; }
+    .clock-strip { height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 110px 0 110px; margin-top: -6px; border-top: 1px solid rgba(255,255,255,.08); position: relative; z-index: 2; }
+    .clock { display: inline-flex; align-items: center; gap: 10px; font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; padding: 0 8px; border-radius: 6px; }
+    .clock::before { content: '\f2f2'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 1.35rem; }
+    .clock.active { color: var(--gold); text-shadow: 0 0 12px rgba(255,194,26,.4); }
+    .clock.low { color: #ff5a6e; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: .45; } }
+
+    .play-row { display: grid; grid-template-columns: 268px minmax(0, 1fr); gap: 10px; flex: 1; }
+    .info-col { display: flex; flex-direction: column; gap: 10px; }
+    .card-head { display: flex; align-items: center; gap: 10px; font-size: 1.32rem; font-weight: 700; padding: 14px 16px 10px; }
+    .card-head i { font-size: 1.4rem; color: var(--blue); }
+    .navy-panel .card-head { border-bottom: 1px solid rgba(255,255,255,.08); }
+    .navy-panel .card-head i { color: var(--gold); }
+    .card-head .more { margin-left: auto; color: var(--gold); font-size: 1rem; font-weight: 600; background: none; border: 0; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+    .info-list { padding: 0 16px 10px; }
+    .info-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 1.06rem; }
+    .info-row:last-child { border-bottom: 0; }
+    .info-row b { font-weight: 500; text-align: right; }
+    .pill-blue { background: var(--blue); color: #fff; border-radius: 6px; padding: 3px 12px; font-weight: 600; }
+
+    .moves-card { flex: 1; display: flex; flex-direction: column; min-height: 170px; background: #f3f6fb; }
+    .moves { flex: 1; overflow-y: auto; padding: 0 10px 10px; max-height: 260px; }
+    .move-row { display: grid; grid-template-columns: 34px 1fr 1fr; gap: 6px; padding: 6px 10px; border-radius: 4px; font-size: 1rem; }
+    .move-row:nth-child(even) { background: rgba(255,255,255,.7); }
+    .move-row.last { background: #cfe0ff !important; }
+    .move-row span:first-child { color: var(--muted); }
+
+    .board-panel { padding: 10px 18px 8px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-height: 440px; }
+    .board-grid { display: grid; grid-template-columns: 26px minmax(0, 1fr); grid-template-rows: auto 26px; width: 100%; max-width: 486px; }
+    .ranks { display: flex; flex-direction: column; }
+    .ranks span, .files span { flex: 1; display: grid; place-items: center; font-weight: 600; font-size: 1.05rem; color: #dbe5fb; }
+    .files { grid-column: 2; display: flex; }
+    #board, #idleBoard { width: 100%; position: relative; }
+    .board-b72b1 { border: 3px solid #0a1f52 !important; box-shadow: 0 0 0 2px rgba(110,160,255,.35); }
+    .white-1e1d7 { background-color: var(--sq-light) !important; color: var(--sq-dark) !important; }
+    .black-3c85d { background-color: var(--sq-dark) !important; color: var(--sq-light) !important; }
+    .highlight-sq { background-color: rgba(255,194,26,.55) !important; }
+    .in-check { background-color: rgba(227,18,45,.65) !important; box-shadow: inset 0 0 12px rgba(120,0,20,.9) !important; }
+
+    #arena { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    #arena:not(.hidden) ~ #idleView { display: none; }
+    #idleView { width: 100%; position: relative; display: flex; justify-content: center; }
+    .idle-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(6,21,56,.35); border-radius: 6px; }
+    .join-card { width: 100%; max-width: 400px; max-height: 100%; overflow-y: auto; background: #fff; color: var(--ink); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,.45); padding: 18px 20px; }
+    .join-card h3 { margin: 0 0 4px; font-size: 1.45rem; display: flex; gap: 10px; align-items: center; }
+    .join-card h3 i { color: var(--blue); }
+    .join-card .sub { color: var(--muted); margin: 0 0 6px; font-size: .95rem; }
+    .join-card .inp { background: var(--soft) !important; border-color: #d3dbe8 !important; color: var(--ink) !important; height: 38px; }
+    .join-card .inp::placeholder { color: #98a3b8; }
+    .join-card .form-label { margin: 8px 0 3px; }
+    .join-card .btn.secondary { background: #fff !important; color: var(--ink) !important; border: 1px solid #d3dbe8 !important; }
+
+    .arena-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; width: 100%; max-width: 486px; padding-left: 26px; }
+    .strike-counter { display: inline-flex; gap: 5px; align-items: center; color: #c9d5f0; font-size: .9rem; margin-right: auto; }
+    .strike-dot { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3); }
+    .strike-dot.active { background: var(--red); border-color: var(--red); box-shadow: 0 0 6px var(--red); }
+    #drawOfferPrompt { display: inline-flex; gap: 6px; align-items: center; background: #fff7dd; color: #6b4e00; border: 1px solid var(--gold); padding: 4px 8px; border-radius: 6px; font-size: .9rem; }
+    #drawOfferPrompt.hidden { display: none !important; }
+    .spec-banner { background: var(--gold); color: #2a1d00; font-weight: 700; padding: 5px 12px; border-radius: 6px; font-size: .95rem; }
 
     .game-over-banner {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.92);
-      color: #ffffff;
-      padding: 18px 24px;
-      border-radius: 10px;
-      text-align: center;
-      z-index: 1000;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      border: 2px solid var(--dict-yellow);
-      min-width: 260px;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; min-width: 260px;
+      background: rgba(6,21,56,.95); color: #fff; padding: 18px 24px; border-radius: 10px; text-align: center;
+      border: 2px solid var(--gold); box-shadow: 0 10px 25px rgba(0,0,0,.5);
     }
+    .game-over-banner h3 { color: var(--gold) !important; }
 
+    /* RIGHT COLUMN */
+    .right-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .tbl { width: 100%; border-collapse: collapse; }
+    .navy-panel .tbl thead th { background: rgba(255,255,255,.07); color: #fff; font-weight: 600; font-size: 1.08rem; text-align: left; padding: 10px 14px; }
+    .navy-panel .tbl td { padding: 9px 14px; font-size: 1.02rem; border-top: 1px solid rgba(255,255,255,.06); }
+    .navy-panel .tbl tbody tr { cursor: pointer; }
+    .navy-panel .tbl tbody tr:hover { background: rgba(255,255,255,.05); }
+    .srv { display: inline-block; min-width: 34px; text-align: center; background: var(--navy-700); border: 1px solid rgba(110,160,255,.35); border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: .95rem; }
+    .st { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; white-space: nowrap; }
+    .st::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+    .st.live { color: #2bd46a; } .st.wait { color: var(--gold); } .st.done { color: #9fb0d4; }
+    .st.done::before { display: none; }
+    .muted { color: #9fb0d4; }
+
+    .chat { flex: 1; display: flex; flex-direction: column; min-height: 240px; }
+    .chat-channel { margin-left: auto; font-size: .85rem; font-weight: 500; color: #9fb0d4; }
+    .chat-msgs { flex: 1; overflow-y: auto; padding: 12px 18px; font-size: 1.08rem; line-height: 1.55; max-height: 230px; min-height: 110px; }
+    .chat-msgs .sys b { color: var(--blue-300); }
+    .chat-msgs b { font-weight: 700; }
+    .chat-msgs .me b { color: var(--gold); }
+    .chat-form { display: flex; gap: 8px; padding: 10px 14px 14px; }
+    .chat-form input { flex: 1; height: 44px; background: rgba(6,21,56,.55); border: 1px solid rgba(110,160,255,.35); border-radius: 6px; color: #fff; padding: 0 14px; font-size: 1rem; outline: none; }
+    .chat-form input::placeholder { color: #8fa3cc; }
+    .chat-form button { width: 60px; height: 44px; border: 0; border-radius: 6px; background: linear-gradient(180deg, #2b6af0, #1f56d8); color: #fff; font-size: 1.2rem; cursor: pointer; }
+
+    /* BOTTOM */
+    .lb-panel { overflow: hidden; }
+    .lb-head { display: flex; align-items: center; gap: 12px; height: 50px; padding: 0 0 0 16px; background: linear-gradient(90deg, #0d2a6d, #0a1f52); color: #fff; font-size: 1.32rem; font-weight: 700; }
+    .lb-head i { color: var(--gold); font-size: 1.45rem; }
+    .lb-head .records {
+      margin-left: auto; height: 100%; display: flex; align-items: center; gap: 10px; padding: 0 22px 0 30px;
+      background: var(--gold); color: #1a1200; font-weight: 700; font-size: 1.02rem; border: 0; cursor: pointer;
+      clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .lb-tbl { width: 100%; border-collapse: collapse; }
+    .lb-tbl th { font-weight: 500; font-size: .98rem; color: var(--ink); padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: center; }
+    .lb-tbl th.l, .lb-tbl td.l { text-align: left; }
+    .lb-tbl td { padding: 4px 10px; font-size: 1rem; text-align: center; border-bottom: 1px solid #eef1f6; }
+    .lb-tbl td.rk { color: #8a94ab; width: 34px; }
+    .lb-tbl td.md { width: 30px; font-size: 1.05rem; }
+    .lb-tbl tr:hover td { background: #f6f9ff; }
+    .srv-light { display: inline-block; background: #dbe7ff; color: var(--blue); font-weight: 700; border-radius: 4px; padding: 0 7px; font-size: .9rem; }
+    .btn-view { background: var(--navy-800); color: #fff; border: 0; border-radius: 4px; font-weight: 600; font-size: .9rem; padding: 3px 14px; cursor: pointer; }
+    .btn-view:hover { background: var(--blue); }
+    .lb-scroll { max-height: 210px; overflow-y: auto; }
+
+    .host-card { padding: 0 16px 14px; }
+    .host-card .card-head { padding: 12px 0 10px; margin-bottom: 8px; }
+    .host-card label { display: block; font-size: 1.02rem; font-weight: 500; margin: 0 0 6px; color: #fff; text-transform: none; letter-spacing: 0; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { width: 100%; height: 40px; background: rgba(6,21,56,.55); border: 1px solid rgba(110,160,255,.35); border-radius: 6px; color: #fff; padding: 0 40px 0 12px; font-size: 1rem; outline: none; }
+    .pw-wrap input::placeholder { color: #8fa3cc; }
+    .pw-wrap button { position: absolute; right: 6px; top: 6px; width: 30px; height: 28px; background: none; border: 0; color: #dbe5fb; cursor: pointer; padding: 0; }
+    .btn-unlock { width: 100%; height: 42px; margin-top: 12px; border: 0; border-radius: 6px; background: linear-gradient(180deg, #2b6af0, #1f56d8); color: #fff; font-weight: 700; font-size: 1.08rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .locked-note { text-align: center; color: #ff4d64; font-weight: 600; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); font-size: 1.02rem; }
+    .unlocked-note { text-align: center; color: #2bd46a; font-weight: 600; margin: 4px 0 10px; }
+
+    /* ===================== OTHER VIEWS ===================== */
+    .view-page { margin-top: 0; }
+    .page-card { padding: 18px 20px; margin-bottom: 16px; }
+    .page-title { margin: 0 0 14px; font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; gap: 12px; text-transform: uppercase; }
+    .page-title i { color: var(--gold); }
+    .white-panel .page-title i { color: var(--blue); }
+    .light-tbl { width: 100%; border-collapse: collapse; }
+    .light-tbl th { text-align: left; font-size: .9rem; color: var(--muted); text-transform: uppercase; padding: 9px 10px; border-bottom: 2px solid var(--line); position: sticky; top: 0; background: #fff; }
+    .light-tbl td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-size: 1.02rem; }
+    .light-tbl tr.top8-row td { background: #f2f7ff; }
+    .scroll { max-height: 520px; overflow: auto; border-radius: 8px; }
+
+    /* Generic form + buttons (used inside cards, admin and modals) */
+    .fld-label, .form-label { display: block; color: var(--muted); margin: 10px 0 4px; font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .4px; }
+    .inp { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #d3dbe8; border-radius: 8px; background: var(--soft); color: var(--ink); font-size: 1rem; outline: none; }
+    .inp:focus { border-color: var(--blue); background: #fff; }
+    .navy-panel .inp { background: rgba(6,21,56,.55); border-color: rgba(110,160,255,.35); color: #fff; }
+    .navy-panel .fld-label { color: #b9c6e8; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 1rem; cursor: pointer; color: #fff; background: var(--blue); transition: filter .15s; }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+    .btn.secondary { background: #fff; color: var(--ink); border: 1px solid #d3dbe8; }
+    .navy-panel .btn.secondary, .board-panel .btn.secondary { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.25); }
+    .btn.danger { background: var(--red); }
+    .btn.success { background: #16a34a; }
+    .btn.gold { background: var(--gold); color: #1a1200; }
+    .btn.block { width: 100%; }
+    .btn.sm { padding: 6px 10px; font-size: .88rem; border-radius: 6px; }
     .stack { display: flex; flex-direction: column; gap: 10px; }
-    .row { display: flex; gap: 10px; align-items: center; }
-    .scroll { overflow: auto; max-height: 320px; border-radius: 6px; border: 1px solid var(--border); }
-    
-    table { width: 100%; border-collapse: collapse; text-align: left; background: #ffffff; }
-    th { background: #f3f4f6; padding: 10px 12px; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; position: sticky; top: 0; border-bottom: 2px solid var(--border); }
-    td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); }
-    tr:last-child td { border-bottom: 0; }
-    tr:hover { background: #f9fafb; }
-    tr.top8-row { background: var(--top8-bg); }
-    tr.top8-row td { border-bottom: 1px solid #dbeafe; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .note { font-size: .92rem; padding: 10px 12px; border-radius: 8px; }
+    .note.purple { color: #5b21b6; background: #f3e8ff; }
+    .note.red { color: #b4152b; background: #fff0f2; border: 1px solid #f7b8c2; text-align: center; }
 
-    .rank-badge { font-weight: bold; }
-    .rank-1 { color: var(--gold); }
-    .rank-2 { color: var(--silver); }
-    .rank-3 { color: var(--bronze); }
+    .badge { font-size: .95rem; font-weight: 700; background: #fff; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+    .badge.green { border-color: #10b981; color: #047857; background: #ecfdf5; }
+    .badge.red { border-color: var(--red); color: var(--red); background: #fef2f2; }
+    .badge.yellow { border-color: #d8af00; color: #8a6d00; background: #fffbeb; }
+    .badge.purple { border-color: #8b5cf6; color: #6d28d9; background: #f5f3ff; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
-    .strike-counter { display: inline-flex; gap: 4px; align-items: center; }
-    .strike-dot { width: 10px; height: 10px; border-radius: 50%; background: #e5e7eb; border: 1px solid #d1d5db; }
-    .strike-dot.active { background: var(--red); border-color: var(--red); box-shadow: 0 0 6px var(--red); }
-
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
-    .modal { background: #ffffff; border: 2px solid var(--red); border-radius: 12px; padding: 24px; max-width: 440px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .modal h3 { color: var(--red); margin-top: 0; font-size: 20px; }
-    
-    .hidden { display: none !important; }
-    .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; display: inline-block; }
+    .tag { font-size: .72rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 700; display: inline-block; }
     .tag-live { background: #ecfdf5; color: #047857; border: 1px solid #10b981; }
-    .tag-done { background: #f3f4f6; color: var(--text-muted); border: 1px solid var(--border); }
-    .tag-top8 { background: #dbeafe; color: #1e40af; border: 1px solid #60a5fa; margin-top: 2px; }
+    .tag-done { background: #f3f4f6; color: var(--muted); border: 1px solid var(--line); }
     .tag-knockout { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; }
 
-    /* Tournament Bracket Visual Styles */
-    .bracket-container {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      overflow-x: auto;
-      padding: 10px 0;
-    }
-    .bracket-round {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      gap: 15px;
-    }
-    .bracket-round-title {
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--dict-blue-dark);
-      text-align: center;
-      margin-bottom: 5px;
-      padding: 4px;
-      background: var(--panel2);
-      border-radius: 4px;
-    }
-    .bracket-match {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-      position: relative;
-    }
-    .bracket-match.active-match {
-      border-color: var(--dict-blue);
-      box-shadow: 0 0 8px rgba(0, 50, 160, 0.25);
-    }
-    .bracket-slot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 8px;
-      background: var(--panel2);
-      border-radius: 4px;
-      margin: 4px 0;
-      font-size: 13px;
-    }
-    .bracket-slot.winner {
-      background: #d1fae5;
-      font-weight: bold;
-      color: #065f46;
-      border: 1px solid #10b981;
-    }
-    .bracket-slot-name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .timer-box { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(6,21,56,.4); padding: 10px 12px; border-radius: 8px; }
+    .timer-box b { font-family: monospace; font-size: 1.15rem; }
 
-    @media (max-width: 850px) {
-      .layout { grid-template-columns: 1fr; padding: 10px; gap: 12px; }
+    /* Bracket */
+    .bracket-container { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; overflow-x: auto; padding: 6px 0; }
+    .bracket-round { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; }
+    .bracket-round-title { font-size: .85rem; font-weight: 800; text-transform: uppercase; color: var(--navy-800); text-align: center; padding: 6px; background: #eef3fc; border-radius: 6px; }
+    .bracket-match { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,.04); }
+    .bracket-match.active-match { border-color: var(--blue); box-shadow: 0 0 10px rgba(31,86,216,.3); }
+    .bracket-slot { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #f3f6fb; border-radius: 4px; margin: 4px 0; font-size: .95rem; }
+    .bracket-slot.winner { background: #d1fae5; font-weight: 700; color: #065f46; border: 1px solid #10b981; }
+    .bracket-slot-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bracket-match select { width: 100%; border: 1px solid #d3dbe8; border-radius: 6px; background: var(--soft); }
+    .bracket-match button { border: 0; border-radius: 6px; cursor: pointer; color: #fff; background: var(--blue); }
+    .bracket-match button.secondary { background: #eef3fc; color: var(--ink); }
+    .bracket-match button.success { background: #16a34a; }
+
+    /* Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(6,21,56,.7); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(3px); padding: 16px; }
+    .modal { background: #fff; border-radius: 14px; padding: 24px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.35); border-top: 6px solid var(--red); }
+    .modal h3 { margin: 0; font-size: 1.5rem; color: var(--red); }
+    .modal.blue { border-top-color: var(--blue); }
+    .modal.blue h3 { color: var(--blue); }
+    .modal.wide { max-width: 680px; text-align: left; max-height: calc(100vh - 32px); overflow-y: auto; }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1500px) {
+      .main-grid { grid-template-columns: 200px minmax(0, 1fr) 400px; }
+      .title-main { font-size: 2rem; }
+      .head-art { width: 300px; }
+      .head-art .king { right: 150px; font-size: 7rem; }
+      .brand-name { font-size: 3.2rem; }
+      .head-divider { margin: 0 24px; }
+    }
+    @media (max-width: 1250px) {
+      .main-grid { grid-template-columns: 200px minmax(0, 1fr); }
+      .right-col { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
+      .head-art { display: none; }
+    }
+    @media (max-width: 960px) {
+      .top-header { height: auto; padding: 16px; flex-wrap: wrap; gap: 10px; justify-content: center; }
+      .circuit, .head-divider { display: none; }
+      .brand-logo { width: 80px; height: 80px; }
+      .brand-name { font-size: 2.4rem; }
+      .brand-sub { font-size: .8rem; }
+      .title-dict { font-size: 2.2rem; } .title-main { font-size: 1.5rem; }
+      .wrap { padding: 8px 10px 0; }
+      .main-grid, .bottom-grid { grid-template-columns: 1fr; }
+      .right-col { grid-template-columns: 1fr; }
+      .sidebar { padding: 8px; }
+      .sidebar::after { display: none; }
+      .nav { flex-direction: row; overflow-x: auto; }
+      .nav .sep { display: none; }
+      .nav button { height: 44px; font-size: 1rem; white-space: nowrap; width: auto; gap: 8px; }
+      .nav button i { font-size: 1.15rem; width: auto; }
+      .play-row { grid-template-columns: 1fr; }
+      .info-col { order: 2; }
+      .vs-name { font-size: 1.15rem; max-width: 130px; }
+      .vs-avatar { width: 46px; height: 46px; font-size: 1.5rem; }
+      .vs-text { font-size: 2.2rem; padding: 0 10px; }
+      .clock-strip { padding: 0 14px; }
+      .clock { font-size: 1.4rem; }
       .bracket-container { grid-template-columns: 1fr; }
+      .lb-tbl .hide-sm { display: none; }
+      #idleView .board-grid { display: none; }
+      .idle-overlay { position: static; background: none; padding: 4px 0; }
+      .join-card { max-height: none; box-shadow: none; }
+      .board-panel { min-height: 0; }
     }
   </style>
 </head>
@@ -223,264 +394,399 @@
   <div id="warningModal" class="modal-overlay hidden">
     <div class="modal">
       <h3>⚠️ FAIR PLAY WARNING</h3>
-      <p style="font-size: 15px; margin: 15px 0;">Tab switch or window change detected!</p>
-      <div style="background: var(--panel2); padding: 12px; border-radius: 8px; margin-bottom: 18px;">
-        <span style="font-size: 13px; color: var(--text-muted);">Tab Switch Strikes:</span>
-        <div style="font-size: 22px; font-weight: bold; color: var(--red); margin-top: 4px;" id="modalStrikeText">Strike 1 of 3</div>
+      <p style="font-size: 1.05rem; margin: 15px 0;">Tab switch or window change detected!</p>
+      <div style="background: #f5f7fb; padding: 12px; border-radius: 8px; margin-bottom: 18px;">
+        <span style="font-size: .95rem; color: var(--muted);">Tab Switch Strikes:</span>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--red); margin-top: 4px;" id="modalStrikeText">Strike 1 of 3</div>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
+      <p style="font-size: .92rem; color: var(--muted); margin-bottom: 20px;">
         Leaving the game screen during an active match is strictly prohibited. Reaching <strong>3 strikes</strong> will instantly forfeit your match!
       </p>
-      <button style="width: 100%;" onclick="dismissWarningModal()">I Understand & Return To Game</button>
+      <button class="btn block" onclick="dismissWarningModal()">I Understand &amp; Return To Game</button>
     </div>
   </div>
 
   <!-- Match Found Confirmation Modal (10s Accept/Decline) -->
   <div id="matchPromptModal" class="modal-overlay hidden">
-    <div class="modal" style="border-color: var(--dict-blue);">
-      <h3 style="color: var(--dict-blue);">⚔️ OPPONENT FOUND!</h3>
-      <p style="font-size: 15px; margin: 10px 0;">An opponent is ready to play. Accept to start?</p>
-      
-      <div style="font-size: 28px; font-weight: bold; color: var(--dict-blue); margin: 15px 0;">
-        ⏱️ <span id="promptCountdown">10</span>s
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-        <button style="background: #10b981;" onclick="respondToOffer(true)">Accept</button>
-        <button class="danger" onclick="respondToOffer(false)">Decline</button>
+    <div class="modal blue">
+      <h3>⚔️ OPPONENT FOUND!</h3>
+      <p style="font-size: 1.05rem; margin: 10px 0;">An opponent is ready to play. Accept to start?</p>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--blue); margin: 15px 0;">⏱️ <span id="promptCountdown">10</span>s</div>
+      <div class="grid2" style="margin-top: 15px;">
+        <button class="btn success" onclick="respondToOffer(true)">Accept</button>
+        <button class="btn danger" onclick="respondToOffer(false)">Decline</button>
       </div>
     </div>
   </div>
 
-  <div class="layout">
-    <!-- Header Banner Image & Status Bar -->
-    <div class="full header-card">
-      <div style="background: linear-gradient(135deg, #002270 0%, #0032a0 100%); color: white; padding: 25px 20px; text-align: center;">
-        <h1 style="margin: 0; font-size: 26px; letter-spacing: 0.5px;">DICT Digital Chess Sportsfest 2026</h1>
-        <p style="margin: 6px 0 0; opacity: 0.85; font-size: 14px;">Official Realtime Tournament Engine — Multi-Server Support, Swiss & Bracket Systems</p>
+  <!-- Match History Modal (new) -->
+  <div id="historyModal" class="modal-overlay hidden" onclick="if (event.target === this) this.classList.add('hidden')">
+    <div class="modal blue wide">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
+        <h3 id="historyTitle" style="margin:0;">Match History</h3>
+        <button class="btn secondary sm" style="margin-left:auto;" onclick="document.getElementById('historyModal').classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="header-status-bar">
-        <span style="font-size: 13px; font-weight: 600; color: var(--dict-blue-dark);">Department of Information and Communications Technology</span>
-        <div class="row">
-          <div id="serverBadge" class="badge">Server: 1</div>
-          <div id="modeBadge" class="badge purple">Mode: Swiss System</div>
-          <div id="statusBadge" class="badge green">🟢 Lobby Open</div>
-          <div id="roleBadge" class="badge">Not Signed In</div>
-        </div>
+      <div class="scroll">
+        <table class="light-tbl">
+          <thead><tr><th>Match</th><th>Opponent</th><th>Color</th><th>Result</th><th></th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
       </div>
     </div>
+  </div>
 
-    <!-- Active Match / Spectator / Queue Arena -->
-    <div id="mainArenaPanel" class="panel full hidden">
-      <!-- Player Lobby / Matchmaker View -->
-      <div id="lobby" style="text-align: center; padding: 15px 10px;">
-        <h3 style="margin-top:0;">Welcome, <span id="displayName" style="color:var(--dict-blue);"></span>!</h3>
-        <p id="queueStatusText" style="color: var(--text-muted); max-width: 550px; margin: 0 auto 15px;">
-          The tournament host has not started the tournament yet. Please wait...
-        </p>
+  <!-- ===================== HEADER ===================== -->
+  <header class="top-header">
+    <svg class="circuit" viewBox="0 0 140 160" aria-hidden="true">
+      <g fill="none" stroke="#ffc21a" stroke-width="2.5" stroke-linecap="round">
+        <path d="M0 98 H40 L64 122 H96"/><path d="M0 116 H30 L58 144 H90"/><path d="M0 80 H52 L76 104"/>
+      </g>
+      <g fill="#fff" stroke="#ffc21a" stroke-width="2.5"><circle cx="96" cy="122" r="5"/><circle cx="90" cy="144" r="5"/><circle cx="76" cy="104" r="5"/></g>
+      <g stroke="#1f56d8" stroke-width="2" opacity=".35"><path d="M10 0 L70 60"/><path d="M0 20 L40 60"/></g>
+    </svg>
 
-        <div id="playerActionArea" class="stack" style="max-width: 320px; margin: 0 auto;">
-          <button id="findMatchBtn" class="hidden" onclick="toggleMatchQueue()">🔍 Find Next Opponent</button>
-          <button id="knockoutMatchBtn" class="hidden success" onclick="enterMyKnockoutMatch()">⚔️ Launch Knockout Match</button>
-        </div>
+    <div class="brand">
+      <div class="brand-logo">
+        <img id="logoImg" src="logo.png" alt="DICT" onerror="logoFailed(this)">
+        <span id="logoFb" class="fb hidden">DICT</span>
       </div>
+      <div>
+        <div class="brand-name">DICT</div>
+        <div class="brand-sub">Department of Information<br>and Communications Technology</div>
+      </div>
+    </div>
+    <div class="head-divider"></div>
+    <div class="title-block">
+      <div class="title-dict">DICT</div>
+      <div class="title-main">Digital Chess Tournament</div>
+      <div class="title-tag">THINK • STRATEGIZE • WIN</div>
+    </div>
+    <div class="head-art" aria-hidden="true">
+      <div class="slash s3"></div><div class="slash s1"></div><div class="slash s2"></div>
+      <div class="sq" style="right:118px; top:40px;"></div><div class="sq" style="right:94px; top:64px;"></div>
+      <div class="sq" style="right:142px; top:64px; background:#1f56d8;"></div><div class="sq" style="right:118px; top:88px;"></div>
+      <div class="sq" style="right:70px; top:88px; background:#0c2766;"></div><div class="sq" style="right:94px; top:112px; background:#1f56d8;"></div>
+      <i class="fa-solid fa-chess-king king"></i>
+    </div>
+  </header>
 
-      <!-- Live Chessboard Area -->
-      <div id="arena" class="arena hidden">
-        <div id="spectatorBanner" class="badge yellow hidden" style="margin-bottom: 5px;">
-          👁️ SPECTATOR MODE — Watching Match Live (<span id="spectatorMatchId">--</span>)
-        </div>
+  <div class="wrap">
 
-        <!-- Top Player Card -->
-        <div class="player-card">
-          <div class="player-info">
-            <span id="topPlayerName" class="player-name">Opponent</span>
-            <span id="topPlayerStatus" class="player-status-tag">Black</span>
+    <!-- ===================== DASHBOARD ===================== -->
+    <div class="main-grid">
+      <aside class="navy-panel sidebar">
+        <nav class="nav" id="nav">
+          <button data-view="dashboard" class="active" onclick="showView('dashboard')"><i class="fa-solid fa-house white"></i> Dashboard</button>
+          <div class="sep"></div>
+          <button data-view="matches" onclick="showView('matches')"><i class="fa-solid fa-trophy"></i> Live Matches</button>
+          <div class="sep"></div>
+          <button data-view="leaderboard" onclick="showView('leaderboard')"><i class="fa-solid fa-chart-column"></i> Leaderboard</button>
+          <div class="sep"></div>
+          <button data-view="admin" onclick="showView('admin')"><i class="fa-solid fa-shield-halved"></i> Host Admin</button>
+          <div class="sep"></div>
+          <button data-view="settings" onclick="showView('settings')"><i class="fa-solid fa-gear white"></i> Settings</button>
+        </nav>
+      </aside>
+
+      <!-- DASHBOARD CENTER -->
+      <section class="center-col view" data-view-page="dashboard">
+        <div class="navy-panel">
+          <div class="vs-bar">
+            <div class="vs-side">
+              <div class="vs-avatar" id="bottomAvatar"><i class="fa-solid fa-user"></i></div>
+              <div style="min-width:0;">
+                <div id="bottomPlayerName" class="vs-name">You</div>
+                <span class="chip" id="bottomPlayerStatus">White</span>
+              </div>
+            </div>
+            <div class="vs-text">VS</div>
+            <div class="vs-side right">
+              <div class="vs-avatar black" id="topAvatar"><i class="fa-solid fa-user"></i></div>
+              <div style="min-width:0;">
+                <div id="topPlayerName" class="vs-name">Opponent</div>
+                <span class="chip" id="topPlayerStatus">Black</span>
+              </div>
+            </div>
           </div>
-          <div id="topClock" class="clock">--:--</div>
+          <div class="clock-strip">
+            <div id="bottomClock" class="clock">--:--</div>
+            <div id="topClock" class="clock">--:--</div>
+          </div>
         </div>
 
-        <!-- Interactive Board -->
-        <div id="board"></div>
+        <div class="play-row">
+          <div class="info-col">
+            <div class="white-panel">
+              <div class="card-head"><i class="fa-solid fa-circle-info"></i> Game Info</div>
+              <div class="info-list">
+                <div class="info-row"><span>Match ID:</span><b id="giMatch">—</b></div>
+                <div class="info-row"><span>Server:</span><span class="pill-blue" id="giServer">Server 1</span></div>
+                <div class="info-row"><span>Mode:</span><b id="giMode">Swiss System</b></div>
+                <div class="info-row"><span>Time Control:</span><b id="giTime">10 min + 5 sec</b></div>
+              </div>
+            </div>
+            <div class="white-panel moves-card">
+              <div class="card-head"><i class="fa-solid fa-chess-pawn" style="color:var(--navy-800)"></i> Move History</div>
+              <div class="moves" id="moveHistory"><div class="move-row"><span></span><span class="muted" style="grid-column: span 2; color: var(--muted);">No moves yet.</span></div></div>
+            </div>
+          </div>
 
-        <!-- Bottom Player Card -->
-        <div class="player-card">
-          <div class="player-info">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span id="bottomPlayerName" class="player-name">You</span>
-              
-              <!-- Draw Offer Prompt Banner -->
-              <div id="drawOfferPrompt" class="hidden" style="gap: 6px; align-items: center; background: #fffbeb; border: 1px solid var(--yellow); padding: 2px 8px; border-radius: 4px; font-size: 11px;">
-                <span>Draw offered?</span>
-                <button style="padding: 2px 6px; font-size: 10px;" onclick="acceptDraw()">Accept</button>
-                <button class="secondary" style="padding: 2px 6px; font-size: 10px;" onclick="declineDraw()">Decline</button>
+          <div class="navy-panel board-panel">
+            <!-- Live Chessboard Area -->
+            <div id="arena" class="hidden">
+              <div id="spectatorBanner" class="spec-banner hidden">👁️ SPECTATOR MODE — Watching Match Live (<span id="spectatorMatchId">--</span>)</div>
+              <div class="board-grid">
+                <div class="ranks" id="rankLabels"></div>
+                <div id="board"></div>
+                <div class="files" id="fileLabels"></div>
+              </div>
+              <div class="arena-actions">
+                <div id="strikeIndicator" class="strike-counter" title="Tab-Switch Strikes">
+                  <span>FairPlay:</span>
+                  <div class="strike-dot" id="dot1"></div><div class="strike-dot" id="dot2"></div><div class="strike-dot" id="dot3"></div>
+                </div>
+                <div id="drawOfferPrompt" class="hidden">
+                  <span>Draw offered?</span>
+                  <button class="btn sm success" onclick="acceptDraw()">Accept</button>
+                  <button class="btn sm secondary" onclick="declineDraw()">Decline</button>
+                </div>
+                <button id="offerDrawBtn" class="btn sm secondary" onclick="offerDraw()">🤝 Offer Draw</button>
+                <button id="resignBtn" class="btn sm danger" onclick="resignMatch()">🏳 Resign</button>
+                <button id="exitSpectatorBtn" class="btn sm gold hidden" onclick="closeSpectatorView()">Exit Spectator Mode</button>
               </div>
             </div>
 
-            <div id="strikeIndicator" class="strike-counter" title="Tab-Switch Strikes">
-              <span class="player-status-tag">FairPlay: </span>
-              <div class="strike-dot" id="dot1"></div>
-              <div class="strike-dot" id="dot2"></div>
-              <div class="strike-dot" id="dot3"></div>
+            <!-- Idle board + Join / Lobby card -->
+            <div id="idleView">
+              <div class="board-grid">
+                <div class="ranks" id="idleRanks"></div>
+                <div id="idleBoard"></div>
+                <div class="files" id="idleFiles"></div>
+              </div>
+              <div class="idle-overlay">
+                <div class="join-card">
+                  <!-- Player Sign-In & Server Selection -->
+                  <div id="authSection">
+                    <h3><i class="fa-solid fa-chess-knight"></i> Join the Tournament</h3>
+                    <p class="sub">Choose your server and sign in to play.</p>
+                    <div id="authPanel">
+                      <div id="registrationOpenBox">
+                        <label class="form-label">Select Server</label>
+                        <select id="serverSelect" class="inp" onchange="onServerChange(this.value)">
+                          <option value="1">Server 1 (Default)</option>
+                          <option value="2">Server 2</option>
+                          <option value="3">Server 3</option>
+                          <option value="4">Server 4</option>
+                        </select>
+                        <label class="form-label">Email Address (unique player identity)</label>
+                        <input id="playerEmail" class="inp" type="email" placeholder="you@dict.gov.ph" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
+                        <label class="form-label">Display Name</label>
+                        <input id="playerName" class="inp" placeholder="Enter your full name or handle" maxlength="40" autocomplete="name">
+                        <label class="form-label">DICT Agency / Region / Office</label>
+                        <input id="playerAgency" class="inp" placeholder="e.g. Central Office / Region IVA" maxlength="60">
+                        <p id="knockoutNoticeText" class="note purple hidden" style="margin: 10px 0 0;">ℹ️ <strong>Knockout / Bracket Mode Active:</strong> Individual matches can be scheduled on different dates.</p>
+                        <button class="btn block" style="margin-top: 12px;" onclick="registerPlayer()"><i class="fa-solid fa-right-to-bracket"></i> Enter Waiting Lobby</button>
+                        <button class="btn secondary block" style="margin-top: 8px;" onclick="enterSpectatorOnly()"><i class="fa-regular fa-eye"></i> Just Watch (Spectator)</button>
+                      </div>
+                      <div id="registrationClosedBox" class="note red hidden">
+                        <p style="margin: 0 0 6px; font-weight: 800;">🔒 Registration Is Locked</p>
+                        <p style="margin: 0 0 10px; font-size: .9rem;">Late sign-ins are closed. You can watch live matches as a Spectator!</p>
+                        <button class="btn secondary block" onclick="enterSpectatorOnly()">Enter Spectator Mode</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Player Lobby / Matchmaker View -->
+                  <div id="mainArenaPanel" class="hidden">
+                    <div id="lobby" style="text-align:center;">
+                      <h3 style="justify-content:center;"><i class="fa-solid fa-chess"></i> Welcome, <span id="displayName" style="color: var(--blue);"></span>!</h3>
+                      <p id="queueStatusText" class="sub" style="margin: 8px 0 14px;">The tournament host has not started the tournament yet. Please wait...</p>
+                      <div id="playerActionArea" class="stack">
+                        <button id="findMatchBtn" class="btn block hidden" onclick="toggleMatchQueue()">🔍 Find Next Opponent</button>
+                        <button id="knockoutMatchBtn" class="btn success block hidden" onclick="enterMyKnockoutMatch()">⚔️ Launch Knockout Match</button>
+                      </div>
+                      <button class="btn secondary block" style="margin-top:10px;" onclick="showView('matches')"><i class="fa-regular fa-eye"></i> Watch Live Matches</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div id="bottomClock" class="clock">--:--</div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD RIGHT -->
+      <section class="right-col view" data-view-page="dashboard">
+        <div class="navy-panel">
+          <div class="card-head"><i class="fa-solid fa-trophy"></i> Live Matches <button class="more" onclick="showView('matches')">View All <i class="fa-solid fa-arrow-right"></i></button></div>
+          <table class="tbl">
+            <thead><tr><th>Players</th><th>Server</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody id="liveMatchesTable"></tbody>
+          </table>
         </div>
 
-        <!-- Actions -->
-        <div class="row" style="margin-top: 5px;">
-          <button id="offerDrawBtn" class="secondary" onclick="offerDraw()">Offer Draw</button>
-          <button id="resignBtn" class="danger" onclick="resignMatch()">Resign Match</button>
-          <button id="exitSpectatorBtn" class="secondary hidden" onclick="closeSpectatorView()">Exit Spectator Mode</button>
+        <div class="navy-panel chat">
+          <div class="card-head"><i class="fa-solid fa-comment-dots" style="color:#fff"></i> Chat <span class="chat-channel" id="chatChannelLabel">Lobby</span></div>
+          <div class="chat-msgs" id="chatMessages"></div>
+          <form class="chat-form" id="chatForm" autocomplete="off">
+            <input id="chatInput" maxlength="300" placeholder="Type a message...">
+            <button type="submit" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Panel 1: Player Sign-In & Server Selection -->
-    <div class="panel" id="authSection">
-      <h3>♟ Player Entry & Server Selection</h3>
-      <div id="authPanel" class="stack">
-        <div id="registrationOpenBox">
-          <label>Select Server</label>
-          <select id="serverSelect" onchange="onServerChange(this.value)">
-            <option value="1">Server 1 (Default)</option>
-            <option value="2">Server 2</option>
-            <option value="3">Server 3</option>
-            <option value="4">Server 4</option>
-          </select>
-
-          <label>Email Address (unique player identity)</label>
-          <input id="playerEmail" type="email" placeholder="you@dict.gov.ph" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
-          
-          <label>Display Name</label>
-          <input id="playerName" placeholder="Enter your full name or handle" maxlength="40" autocomplete="name">
-
-          <label>DICT Agency / Region / Office</label>
-          <input id="playerAgency" placeholder="e.g. Central Office / Region IVA / ICT Industry Development Bureau" maxlength="60">
-
-          <p id="knockoutNoticeText" class="hidden" style="font-size: 12px; color: #6b21a8; background: #f3e8ff; padding: 8px; border-radius: 6px; margin: 8px 0 0;">
-            ℹ️ <strong>Knockout / Bracket Mode Active:</strong> Individual matches can be scheduled on different dates.
-          </p>
-
-          <button style="margin-top: 10px; width: 100%;" onclick="registerPlayer()">Enter Waiting Lobby</button>
-        </div>
-
-        <div id="registrationClosedBox" class="hidden" style="background: #fef2f2; border: 1px solid var(--red); padding: 12px; border-radius: 6px; text-align: center;">
-          <p style="color: var(--red); margin: 0 0 8px 0; font-weight: bold;">🔒 Registration Is Locked</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">Late sign-ins are closed. You can watch live matches as a Spectator!</p>
-          <button class="secondary" style="width: 100%;" onclick="enterSpectatorOnly()">Enter Spectator Mode</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Panel 2: Host Admin Controls -->
-    <div class="panel">
-      <h3>⚙ Host Admin Dashboard</h3>
-      <div class="stack">
-        <div id="hostLoginBox" class="stack" style="background:var(--panel2);padding:12px;border-radius:6px;border:1px solid var(--border);">
-          <label>Host/Admin Password</label>
-          <input id="hostPasswordInput" type="password" placeholder="Enter host password" autocomplete="current-password">
-          <button class="secondary" onclick="unlockHostControls()">Unlock Host Controls</button>
-        </div>
-        <div id="hostControlsLockedNotice" class="badge red">🔒 Host controls locked</div>
-        
-        <div id="hostControlsArea" class="stack hidden">
-          <div style="background: var(--panel2); padding: 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap:8px; flex-wrap:wrap;">
-            <span style="font-size: 13px; color: var(--text-muted);">Grace Period:</span>
-            <span id="graceTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--yellow);">OFF</span>
-            <span style="font-size: 13px; color: var(--text-muted);">Timer:</span>
-            <span id="tournamentTimerDisplay" style="font-family: monospace; font-size: 16px; font-weight: bold; color: var(--dict-blue);">Not started</span>
+      <!-- ===================== LIVE MATCHES VIEW ===================== -->
+      <section class="view view-page hidden" data-view-page="matches" style="grid-column: 2 / -1;">
+        <div class="navy-panel page-card">
+          <h2 class="page-title"><i class="fa-solid fa-trophy"></i> Live Matches (<span id="activeMatchCount">0</span>)</h2>
+          <p class="muted" style="margin:-6px 0 12px;">Click a match to spectate it live. Showing matches on Server <span id="matchesServerLabel">1</span>.</p>
+          <div class="scroll">
+            <table class="tbl">
+              <thead><tr><th>Match</th><th>White vs Black</th><th>Server</th><th>Status</th><th>Time</th><th>Action</th></tr></thead>
+              <tbody id="allMatchesTable"></tbody>
+            </table>
           </div>
+        </div>
 
-          <label>Host Match Format / Time Control</label>
-          <select id="timeControlSelect" onchange="onAdminFormatOrControlChange()">
-            <option value="10+5">10+5 Rapid</option>
-            <option value="3+2">3+2 Blitz</option>
-          </select>
-
-          <label>Tournament Category</label>
-          <select id="tournamentModeSelect" onchange="onAdminFormatOrControlChange()">
-            <!-- Dynamic options based on match format -->
-          </select>
-
-          <div id="bracketCountGroup" class="hidden">
-            <label>Number of Brackets</label>
-            <input id="bracketCountInput" type="number" min="1" max="8" value="1" onchange="renderBracketView()">
+        <!-- Interactive Bracket View (Bracket / Knockout Modes) -->
+        <div id="bracketPanel" class="white-panel page-card hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h2 class="page-title" style="margin:0;" id="bracketPanelTitle">🏆 Tournament Bracket</h2>
+              <span style="font-size: .92rem; color: var(--muted);" id="bracketPanelSubtitle">Quarterfinals ➔ Semifinals ➔ Finals (Individual Dates Supported)</span>
+            </div>
+            <div id="adminBracketControls" class="hidden">
+              <button class="btn success sm" onclick="saveAdminBracketSelections()">💾 Assign Selected Bracket Slots</button>
+            </div>
           </div>
+          <div class="bracket-container" id="bracketContainer"></div>
+        </div>
+      </section>
 
-          <label>Tournament Duration (minutes)</label>
-          <input id="tournamentDurationMinutes" type="number" min="1" max="1440" value="120">
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button class="secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
-            <button class="secondary" onclick="toggleRegistrationLock()" id="lockToggleBtn">🔒 Lock Registration</button>
+      <!-- ===================== LEADERBOARD VIEW ===================== -->
+      <section class="view view-page hidden" data-view-page="leaderboard" style="grid-column: 2 / -1;">
+        <div class="white-panel page-card">
+          <h2 class="page-title"><i class="fa-solid fa-chart-column"></i> Complete Leaderboard &amp; Standings</h2>
+          <p style="color: var(--muted); margin: -6px 0 12px;">All signed-in players on this server. Win = 1 pt, Draw = 0.5 pt.</p>
+          <div class="scroll">
+            <table class="lb-tbl">
+              <thead><tr><th>#</th><th></th><th class="l">Player</th><th class="hide-sm l">Agency</th><th>Server</th><th>Played</th><th>Wins</th><th>Losses</th><th>Draws</th><th>Total Points</th><th>Match History</th></tr></thead>
+              <tbody id="leaderboardFull"></tbody>
+            </table>
           </div>
-
-          <button onclick="kickoffTournament()" style="background: var(--dict-blue); color: white;">🚀 Save Settings & Kickoff</button>
-          <button class="danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
-          <button class="secondary" onclick="lockHostControls()">🔒 Lock Host Controls</button>
         </div>
-      </div>
+      </section>
+
+      <!-- ===================== HOST ADMIN VIEW ===================== -->
+      <section class="view view-page hidden" data-view-page="admin" style="grid-column: 2 / -1;">
+        <div class="navy-panel page-card" id="adminViewLocked">
+          <h2 class="page-title"><i class="fa-solid fa-lock"></i> Host Admin Controls</h2>
+          <p class="muted" style="margin:-4px 0 12px;">Enter the host password to manage the tournament.</p>
+          <div style="max-width: 380px;">
+            <div class="pw-wrap"><input id="hostPasswordInput2" type="password" placeholder="Enter password..." onkeydown="if(event.key==='Enter') unlockFromView()"><button type="button" onclick="togglePw('hostPasswordInput2', this)"><i class="fa-regular fa-eye-slash"></i></button></div>
+            <button class="btn-unlock" onclick="unlockFromView()"><i class="fa-solid fa-lock"></i> Unlock Host Controls</button>
+          </div>
+        </div>
+
+        <div id="hostControlsArea" class="navy-panel page-card hidden">
+          <h2 class="page-title"><i class="fa-solid fa-shield-halved"></i> Host Admin Dashboard — Server <span id="adminServerLabel">1</span></h2>
+          <div class="stack" style="max-width: 760px;">
+            <div class="timer-box">
+              <span>Grace Period:</span><b id="graceTimerDisplay" style="color: var(--gold);">OFF</b>
+              <span>Tournament Timer:</span><b id="tournamentTimerDisplay" style="color: var(--blue-300);">Not started</b>
+            </div>
+            <div class="grid2">
+              <div>
+                <label class="fld-label">Host Match Format / Time Control</label>
+                <select id="timeControlSelect" class="inp" onchange="onAdminFormatOrControlChange()">
+                  <option value="10+5">10+5 Rapid</option>
+                  <option value="3+2">3+2 Blitz</option>
+                </select>
+              </div>
+              <div>
+                <label class="fld-label">Tournament Category</label>
+                <select id="tournamentModeSelect" class="inp" onchange="onAdminFormatOrControlChange()"></select>
+              </div>
+              <div id="bracketCountGroup" class="hidden">
+                <label class="fld-label">Number of Brackets</label>
+                <input id="bracketCountInput" class="inp" type="number" min="1" max="8" value="1" onchange="renderBracketView()">
+              </div>
+              <div>
+                <label class="fld-label">Tournament Duration (minutes)</label>
+                <input id="tournamentDurationMinutes" class="inp" type="number" min="1" max="1440" value="120">
+              </div>
+            </div>
+            <div class="grid2">
+              <button class="btn secondary" onclick="startGracePeriod()">⏱ Start 5-Min Grace</button>
+              <button class="btn secondary" onclick="toggleRegistrationLock()" id="lockToggleBtn">🔒 Lock Registration</button>
+            </div>
+            <button class="btn" onclick="kickoffTournament()">🚀 Save Settings &amp; Kickoff</button>
+            <div class="grid2">
+              <button class="btn secondary" onclick="showView('matches')">🏆 Open Bracket / Matches</button>
+              <button class="btn secondary" onclick="lockHostControls()">🔒 Lock Host Controls</button>
+            </div>
+            <button class="btn danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SETTINGS VIEW ===================== -->
+      <section class="view view-page hidden" data-view-page="settings" style="grid-column: 2 / -1;">
+        <div class="white-panel page-card">
+          <h2 class="page-title"><i class="fa-solid fa-gear"></i> Settings &amp; Status</h2>
+          <div class="badge-row" style="margin-bottom: 16px;">
+            <div id="serverBadge" class="badge">Server: 1</div>
+            <div id="modeBadge" class="badge purple">Mode: Swiss System</div>
+            <div id="statusBadge" class="badge green">🟢 Lobby Open</div>
+            <div id="roleBadge" class="badge">Not Signed In</div>
+          </div>
+          <div style="max-width: 420px;" class="stack">
+            <div>
+              <label class="form-label">Switch Server</label>
+              <select id="serverSwitch" class="inp" onchange="document.getElementById('serverSelect').value = this.value; onServerChange(this.value)">
+                <option value="1">Server 1</option><option value="2">Server 2</option><option value="3">Server 3</option><option value="4">Server 4</option>
+              </select>
+              <p style="color: var(--muted); font-size: .9rem; margin: 6px 0 0;">Each server is a separate tournament with its own players, matches and leaderboard.</p>
+            </div>
+            <button class="btn secondary" onclick="if (confirm('Sign out of this device? You can sign back in with the same email.')) location.reload()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out / Restart Session</button>
+          </div>
+          <h3 style="margin: 22px 0 6px;">Fair Play Rules</h3>
+          <ul style="margin:0; color:#2b3a5c; line-height:1.6;">
+            <li>Leaving the game tab during a live match gives a strike. 3 strikes = automatic forfeit.</li>
+            <li>Missing 3 match prompts removes you from the search queue.</li>
+            <li>Win = 1 point, draw = 0.5 points, loss = 0 points.</li>
+          </ul>
+        </div>
+      </section>
     </div>
 
-    <!-- Panel 3 (Full Width): Interactive Bracket View (Bracket / Knockout Modes) -->
-    <div id="bracketPanel" class="panel full hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-        <div>
-          <h3 style="margin:0;" id="bracketPanelTitle">🏆 Tournament Bracket</h3>
-          <span style="font-size: 12px; color: var(--text-muted);" id="bracketPanelSubtitle">Quarterfinals ➔ Semifinals ➔ Finals (Individual Dates Supported)</span>
+    <!-- ===================== BOTTOM ROW (DASHBOARD) ===================== -->
+    <div class="bottom-grid view" data-view-page="dashboard">
+      <div class="white-panel lb-panel">
+        <div class="lb-head"><i class="fa-solid fa-trophy"></i> Leaderboard &amp; Standings
+          <button class="records" onclick="showView('leaderboard')">View All Records <i class="fa-solid fa-arrow-right"></i></button>
         </div>
-        <div id="adminBracketControls" class="hidden row">
-          <button class="success" style="padding: 6px 12px; font-size: 12px;" onclick="saveAdminBracketSelections()">💾 Assign Selected Bracket Slots</button>
+        <div class="lb-scroll">
+          <table class="lb-tbl">
+            <thead><tr><th>#</th><th></th><th class="l">Player</th><th>Server</th><th>Wins</th><th>Losses</th><th>Draws</th><th>Total Points</th><th>Match History</th></tr></thead>
+            <tbody id="leaderboardBody"></tbody>
+          </table>
         </div>
       </div>
 
-      <div class="bracket-container" id="bracketContainer">
-        <!-- Bracket rendered dynamically -->
-      </div>
-    </div>
-
-    <!-- Panel 4: Live Tournament Matches -->
-    <div class="panel">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin:0;">👁️ Live Matches (<span id="activeMatchCount">0</span>)</h3>
-        <span style="font-size: 11px; color: var(--text-muted);">Click match to spectate live</span>
-      </div>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Match</th>
-              <th>White vs Black</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="liveMatchesTable"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Panel 5: Full Live Leaderboard with Top Highlights -->
-    <div class="panel">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <h3 style="margin:0;">🏆 Complete Leaderboard & Standings</h3>
-        <span class="tag tag-top8">ALL RECORDS</span>
-      </div>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">All signed-in players on this server are listed below.</p>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Player</th>
-              <th>Pts</th>
-              <th>Played</th>
-              <th>W / D / L</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboardBody"></tbody>
-        </table>
+      <div class="navy-panel host-card">
+        <div class="card-head"><i class="fa-solid fa-lock"></i> Host Admin Dashboard</div>
+        <div id="hostLoginBox">
+          <label for="hostPasswordInput">Host Admin Password</label>
+          <div class="pw-wrap"><input id="hostPasswordInput" type="password" placeholder="Enter password..." autocomplete="current-password" onkeydown="if(event.key==='Enter') unlockHostControls()"><button type="button" onclick="togglePw('hostPasswordInput', this)"><i class="fa-regular fa-eye-slash"></i></button></div>
+          <button class="btn-unlock" onclick="unlockHostControls()"><i class="fa-solid fa-lock"></i> Unlock Host Controls</button>
+        </div>
+        <div id="hostControlsLockedNotice" class="locked-note"><i class="fa-solid fa-lock"></i> Host Control Locked</div>
+        <div id="hostUnlockedNotice" class="hidden">
+          <div class="unlocked-note"><i class="fa-solid fa-lock-open"></i> Host Controls Unlocked</div>
+          <button class="btn-unlock" style="margin-top:0;" onclick="showView('admin')"><i class="fa-solid fa-sliders"></i> Open Host Controls</button>
+          <button class="btn secondary block" style="margin-top:8px;" onclick="lockHostControls()"><i class="fa-solid fa-lock"></i> Lock Again</button>
+        </div>
       </div>
     </div>
 
@@ -581,6 +887,10 @@
     attachServerListeners();
     updateSystemStatusUI();
     updatePlayerLobbyUI();
+    ['serverSelect', 'serverSwitch'].forEach(id => { const el = document.getElementById(id); if (el) el.value = currentServer; });
+    lastMatchesListSignature = ''; lastLeaderboardSignature = ''; lastBracketSignature = '';
+    renderMatchesList(); updateLeaderboard();
+    setChatChannel('lobby');
   }
 
   function detachAllListeners() {
@@ -1259,6 +1569,8 @@
 
     document.getElementById('arena').classList.add('hidden');
     document.getElementById('lobby').classList.remove('hidden');
+    resetVsBar();
+    setChatChannel('lobby');
     updatePlayerLobbyUI();
   }
 
@@ -1266,6 +1578,7 @@
   // GAMEPLAY ENGINE & CLOCK LOGIC
   // ==========================================
   function setupMatch(id, matchData) {
+    showView('dashboard');
     activeMatchId = id;
     activeMatchData = matchData;
     spectatingMatchId = null;
@@ -1285,10 +1598,12 @@
     document.getElementById('topPlayerName').textContent = playerColor === 'white' ? matchData.blackName : matchData.whiteName;
     document.getElementById('topPlayerStatus').textContent = playerColor === 'white' ? 'Black' : 'White';
     document.getElementById('bottomPlayerName').textContent = playerColor === 'white' ? matchData.whiteName : matchData.blackName;
+    setVsColors(playerColor === 'white' ? 'White' : 'Black', playerColor === 'white' ? 'Black' : 'White');
 
     game.load(matchData.fen);
 
     board = Chessboard('board', {
+      showNotation: false,
       draggable: true,
       position: matchData.fen,
       orientation: playerColor,
@@ -1310,8 +1625,11 @@
       handleSquareClick($(this).attr('data-square'));
     });
 
+    renderCoords('rankLabels', 'fileLabels', playerColor);
+    setChatChannel(id);
     startClock();
     syncGameState(matchData);
+    updateGameInfo();
   }
 
   function executeMove(from, to) {
@@ -1322,6 +1640,8 @@
     if (!activeMatchData || activeMatchData.status !== 'Live') return false;
     const move = game.move({ from: from, to: to, promotion: 'q' });
     if (!move) return false;
+    const movesList = (Array.isArray(activeMatchData.moves) ? activeMatchData.moves : Object.values(activeMatchData.moves || {})).concat(move.san);
+    activeMatchData.moves = movesList;
 
     const inc = activeMatchData.timeControl === '10+5' ? 5 : 2;
     if (playerColor === 'white') activeMatchData.whiteTime += inc;
@@ -1336,7 +1656,8 @@
       blackTime: activeMatchData.blackTime,
       lastMoveAt: Date.now(),
       lastMoveBy: playerId,
-      drawOfferedBy: null
+      drawOfferedBy: null,
+      moves: movesList
     });
 
     checkGameOver();
@@ -1589,6 +1910,7 @@
   // LIVE SPECTATOR MODE
   // ==========================================
   function spectateMatch(matchId) {
+    showView('dashboard');
     spectatingMatchId = matchId;
     const matchData = allMatches[matchId];
     if (!matchData) return;
@@ -1604,17 +1926,22 @@
     document.getElementById('topPlayerName').textContent = matchData.blackName;
     document.getElementById('topPlayerStatus').textContent = 'Black';
     document.getElementById('bottomPlayerName').textContent = matchData.whiteName;
+    setVsColors('White', 'Black');
 
     game.load(matchData.fen);
 
     board = Chessboard('board', {
+      showNotation: false,
       draggable: false,
       position: matchData.fen,
       orientation: 'white',
       pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     });
 
+    renderCoords('rankLabels', 'fileLabels', 'white');
+    setChatChannel(matchId);
     syncSpectatorBoard(matchData);
+    updateGameInfo();
   }
 
   function syncSpectatorBoard(matchData) {
@@ -1640,37 +1967,58 @@
     document.getElementById('offerDrawBtn').classList.remove('hidden');
     document.getElementById('arena').classList.add('hidden');
     document.getElementById('lobby').classList.remove('hidden');
+    resetVsBar();
+    setChatChannel('lobby');
+    setTimeout(resizeBoards, 0);
   }
 
   function renderMatchesList() {
-    const tbody = document.getElementById('liveMatchesTable');
     const keys = Object.keys(allMatches);
-    const signature = keys.map(id => {
+    const signature = currentServer + '#' + keys.map(id => {
       const m = allMatches[id] || {};
       return [id, m.status, m.result, m.whiteName, m.blackName].join('|');
     }).join('~');
     if (signature === lastMatchesListSignature) return;
     lastMatchesListSignature = signature;
-    let activeCount = 0;
 
-    tbody.innerHTML = keys.map(id => {
+    // Live first, then newest
+    const ordered = keys.sort((x, y) => {
+      const a = allMatches[x], b = allMatches[y];
+      return ((b.status === 'Live') - (a.status === 'Live')) || ((b.createdAt || 0) - (a.createdAt || 0));
+    });
+    const activeCount = ordered.filter(id => allMatches[id].status === 'Live').length;
+
+    const statusHtml = m => m.status === 'Live'
+      ? '<span class="st live">In Progress</span>'
+      : (m.status === 'Completed' ? `<span class="st done">${m.result === '1/2-1/2' ? 'Draw' : 'Finished ' + escapeHtml(m.result || '')}</span>` : `<span class="st wait">${escapeHtml(m.status || 'Waiting...')}</span>`);
+    const timeHtml = id => `<span data-live-time="${id}">${liveTimeText(allMatches[id])}</span>`;
+
+    // Dashboard card (compact)
+    document.getElementById('liveMatchesTable').innerHTML = ordered.slice(0, 5).map(id => {
       const m = allMatches[id];
-      if (m.status === 'Live') activeCount++;
-
-      const statusTag = m.status === 'Live' ? '<span class="tag tag-live">● LIVE</span>' : `<span class="tag tag-done">${m.result || 'DONE'}</span>`;
-      const koTag = m.isKnockout ? ' <span class="tag tag-knockout">KO</span>' : '';
-
-      return `<tr>
-        <td><small>${id.substr(-6)}</small>${koTag}</td>
-        <td><strong>${escapeHtml(m.whiteName)}</strong> vs <strong>${escapeHtml(m.blackName)}</strong></td>
-        <td>${statusTag}</td>
-        <td>
-          <button class="secondary" style="padding: 4px 8px; font-size: 11px;" onclick="spectateMatch('${id}')">👁️ Watch</button>
-        </td>
+      return `<tr onclick="spectateMatch('${id}')" title="Click to watch">
+        <td>${escapeHtml(m.whiteName)} vs ${escapeHtml(m.blackName)}${m.isKnockout ? ' <span class="tag tag-knockout">KO</span>' : ''}</td>
+        <td><span class="srv">S${currentServer}</span></td>
+        <td>${statusHtml(m)}</td>
+        <td>${timeHtml(id)}</td>
       </tr>`;
-    }).join('') || '<tr><td colspan="4" style="color:var(--text-muted);">No matches recorded yet.</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="muted" style="cursor:default;">No matches yet.</td></tr>';
+
+    // Full list (Live Matches page)
+    document.getElementById('allMatchesTable').innerHTML = ordered.map(id => {
+      const m = allMatches[id];
+      return `<tr onclick="spectateMatch('${id}')">
+        <td>#${id.substr(-6).toUpperCase()}${m.isKnockout ? ' <span class="tag tag-knockout">KO</span>' : ''}</td>
+        <td><strong>${escapeHtml(m.whiteName)}</strong> vs <strong>${escapeHtml(m.blackName)}</strong></td>
+        <td><span class="srv">S${currentServer}</span></td>
+        <td>${statusHtml(m)}</td>
+        <td>${timeHtml(id)}</td>
+        <td><button class="btn sm secondary" onclick="event.stopPropagation(); spectateMatch('${id}')">👁️ Watch</button></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" class="muted">No matches recorded yet.</td></tr>';
 
     document.getElementById('activeMatchCount').textContent = activeCount;
+    document.getElementById('matchesServerLabel').textContent = currentServer;
   }
 
   // ==========================================
@@ -1690,6 +2038,9 @@
     document.getElementById('hostLoginBox').classList.add('hidden');
     document.getElementById('roleBadge').textContent = 'Host/Admin Unlocked';
     document.getElementById('roleBadge').className = 'badge yellow';
+    document.getElementById('hostUnlockedNotice').classList.remove('hidden');
+    document.getElementById('adminViewLocked').classList.add('hidden');
+    document.getElementById('hostPasswordInput').value = '';
     renderBracketView();
   }
 
@@ -1700,6 +2051,8 @@
     document.getElementById('hostControlsLockedNotice').classList.remove('hidden');
     document.getElementById('hostLoginBox').classList.remove('hidden');
     document.getElementById('hostPasswordInput').value = '';
+    document.getElementById('hostUnlockedNotice').classList.add('hidden');
+    document.getElementById('adminViewLocked').classList.remove('hidden');
     renderBracketView();
   }
 
@@ -1946,27 +2299,22 @@
     if (signature === lastLeaderboardSignature) return;
     lastLeaderboardSignature = signature;
 
-    const tbody = document.getElementById('leaderboardBody');
-    tbody.innerHTML = sorted.map((p, index) => {
-      let rankDisplay = `#${index + 1}`;
-      let rankClass = '';
-      
-      if (index === 0) { rankDisplay = '🥇 1st'; rankClass = 'rank-1'; }
-      else if (index === 1) { rankDisplay = '🥈 2nd'; rankClass = 'rank-2'; }
-      else if (index === 2) { rankDisplay = '🥉 3rd'; rankClass = 'rank-3'; }
-
-      return `<tr>
-        <td class="rank-badge ${rankClass}">${rankDisplay}</td>
-        <td>
-          <strong>${escapeHtml(p.name)}</strong>
-          ${p.agency ? `<br><small style="color:var(--dict-blue); font-weight:600;">🏢 ${escapeHtml(p.agency)}</small>` : ''}
-          <br><small style="color:var(--text-muted)">${escapeHtml(p.email || 'Email unavailable')}</small>
-        </td>
-        <td><strong>${p.points} pts</strong></td>
-        <td>${p.played}</td>
-        <td>${p.wins}W / ${p.draws}D / ${p.losses}L</td>
+    const medal = i => i === 0 ? '👑' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+    const row = (p, index, full) => `<tr>
+        <td class="rk">${index + 1}</td>
+        <td class="md">${medal(index)}</td>
+        <td class="l" title="${escapeHtml(p.agency || '')}">${escapeHtml(p.name)}</td>
+        ${full ? `<td class="l hide-sm"><small>${escapeHtml(p.agency || '—')}</small></td>` : ''}
+        <td><span class="srv-light">S${currentServer}</span></td>
+        ${full ? `<td>${p.played}</td>` : ''}
+        <td>${p.wins}</td><td>${p.losses}</td><td>${p.draws}</td>
+        <td><strong>${p.points.toFixed(1)}</strong></td>
+        <td><button class="btn-view" onclick="openMatchHistory('${p.id}')">View</button></td>
       </tr>`;
-    }).join('') || '<tr><td colspan="5" style="color:var(--text-muted);">No standings available yet.</td></tr>';
+    document.getElementById('leaderboardBody').innerHTML = sorted.slice(0, 5).map((p, i) => row(p, i, false)).join('')
+      || '<tr><td colspan="9" style="color:var(--muted); padding:14px;">No standings available yet.</td></tr>';
+    document.getElementById('leaderboardFull').innerHTML = sorted.map((p, i) => row(p, i, true)).join('')
+      || '<tr><td colspan="11" style="color:var(--muted); padding:14px;">No standings available yet.</td></tr>';
   }
 
   // ==========================================
@@ -2167,6 +2515,177 @@
   // Initialize UI controls on load
   document.addEventListener('DOMContentLoaded', () => {
     onAdminFormatOrControlChange(false);
+  });
+
+  // ==========================================
+  // NEW UI HELPERS (layout, game info, move history, chat, match history)
+  // ==========================================
+  const DASHBOARD_REPO_LOGO = 'https://raw.githubusercontent.com/serminoaaron-code/DICT-Digital-Sportsfest-2026/main/logo.png';
+  let idleBoard = null;
+
+  function logoFailed(img) {
+    if (!img.dataset.retry) { img.dataset.retry = '1'; img.src = DASHBOARD_REPO_LOGO; return; }
+    img.style.display = 'none';
+    document.getElementById('logoFb').classList.remove('hidden');
+  }
+
+  function showView(name) {
+    document.querySelectorAll('[data-view-page]').forEach(el => el.classList.toggle('hidden', el.dataset.viewPage !== name));
+    document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    if (name === 'dashboard') setTimeout(resizeBoards, 0);
+    if (name === 'admin') document.getElementById('adminServerLabel').textContent = currentServer;
+  }
+
+  function togglePw(id, btn) {
+    const inp = document.getElementById(id);
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    btn.innerHTML = show ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
+  }
+
+  function unlockFromView() {
+    document.getElementById('hostPasswordInput').value = document.getElementById('hostPasswordInput2').value;
+    document.getElementById('hostPasswordInput2').value = '';
+    unlockHostControls();
+  }
+
+  function setVsColors(bottomColor, topColor) {
+    document.getElementById('bottomPlayerStatus').textContent = bottomColor;
+    document.getElementById('topPlayerStatus').textContent = topColor;
+    document.getElementById('bottomAvatar').classList.toggle('black', bottomColor === 'Black');
+    document.getElementById('topAvatar').classList.toggle('black', topColor === 'Black');
+  }
+
+  function resetVsBar() {
+    document.getElementById('bottomPlayerName').textContent = playerNameStr || 'You';
+    document.getElementById('topPlayerName').textContent = 'Opponent';
+    setVsColors('White', 'Black');
+    ['topClock', 'bottomClock'].forEach(id => { const el = document.getElementById(id); el.textContent = '--:--'; el.className = 'clock'; });
+    updateGameInfo();
+  }
+
+  function renderCoords(rankId, fileId, orientation) {
+    const ranks = orientation === 'black' ? ['1', '2', '3', '4', '5', '6', '7', '8'] : ['8', '7', '6', '5', '4', '3', '2', '1'];
+    const files = orientation === 'black' ? ['H', 'G', 'F', 'E', 'D', 'C', 'B', 'A'] : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    document.getElementById(rankId).innerHTML = ranks.map(r => `<span>${r}</span>`).join('');
+    document.getElementById(fileId).innerHTML = files.map(f => `<span>${f}</span>`).join('');
+  }
+
+  function resizeBoards() {
+    try { if (board && !document.getElementById('arena').classList.contains('hidden')) board.resize(); } catch (_) {}
+    try { if (idleBoard) idleBoard.resize(); } catch (_) {}
+    if (activeMatchId || spectatingMatchId) highlightCheck();
+  }
+  window.addEventListener('resize', () => { clearTimeout(window.__rz); window.__rz = setTimeout(resizeBoards, 120); });
+
+  // ---------- Game Info + Move History ----------
+  const MODE_NAMES = { swiss: 'Swiss System', bracket: 'Bracket System', knockout: 'Knockout' };
+  const TC_NAMES = { '10+5': '10 min + 5 sec', '3+2': '3 min + 2 sec' };
+  let lastMovesSignature = '';
+
+  function currentViewedMatch() {
+    const id = activeMatchId || spectatingMatchId;
+    if (!id) return { id: null, m: null };
+    return { id, m: (spectatingMatchId ? allMatches[id] : (activeMatchData || allMatches[id])) || allMatches[id] || null };
+  }
+
+  function updateGameInfo() {
+    const { id, m } = currentViewedMatch();
+    document.getElementById('giMatch').textContent = id ? '#' + id.substr(-6).toUpperCase() : '—';
+    document.getElementById('giServer').textContent = 'Server ' + currentServer;
+    document.getElementById('giMode').textContent = (m && m.isKnockout) ? 'Knockout' : (MODE_NAMES[globalSettings.mode || 'swiss'] || 'Swiss System');
+    const tc = (m && m.timeControl) || globalSettings.timeControl || '10+5';
+    document.getElementById('giTime').textContent = TC_NAMES[tc] || tc;
+
+    const moves = m ? (Array.isArray(m.moves) ? m.moves : Object.values(m.moves || {})) : [];
+    const sig = (id || '') + '|' + moves.join(',');
+    if (sig === lastMovesSignature) return;
+    lastMovesSignature = sig;
+    const box = document.getElementById('moveHistory');
+    if (!moves.length) {
+      box.innerHTML = `<div class="move-row"><span></span><span style="grid-column: span 2; color: var(--muted);">${id ? 'No moves yet.' : 'Moves appear here during a match.'}</span></div>`;
+      return;
+    }
+    const rows = [];
+    for (let i = 0; i < moves.length; i += 2) rows.push([i / 2 + 1, moves[i], moves[i + 1]]);
+    box.innerHTML = rows.map((r, k) => `<div class="move-row ${k === rows.length - 1 ? 'last' : ''}"><span>${r[0]}.</span><span>${escapeHtml(r[1])}</span><span>${r[2] ? escapeHtml(r[2]) : '...'}</span></div>`).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+  setInterval(updateGameInfo, 500);
+
+  // ---------- Live match clock text in the tables ----------
+  function liveTimeText(m) {
+    if (!m || m.status !== 'Live') return '--:--';
+    const side = String(m.fen || '').split(' ')[1] === 'b' ? 'black' : 'white';
+    const base = Number(side === 'white' ? m.whiteTime : m.blackTime) || 0;
+    const elapsed = m.lastMoveAt ? Math.floor((Date.now() - Number(m.lastMoveAt)) / 1000) : 0;
+    return formatTime(Math.max(0, base - Math.max(0, elapsed)));
+  }
+  setInterval(() => {
+    document.querySelectorAll('[data-live-time]').forEach(el => { el.textContent = liveTimeText(allMatches[el.dataset.liveTime]); });
+  }, 1000);
+
+  // ---------- Chat (lobby chat per server, or match chat while playing / watching) ----------
+  let chatQuery = null, chatChannel = 'lobby';
+  function setChatChannel(channel) {
+    channel = channel || 'lobby';
+    if (chatQuery) chatQuery.off();
+    chatChannel = channel;
+    document.getElementById('chatChannelLabel').textContent = channel === 'lobby' ? `Server ${currentServer} Lobby` : 'Match #' + channel.substr(-6).toUpperCase();
+    const box = document.getElementById('chatMessages');
+    box.innerHTML = '<div class="sys"><b>System:</b> Welcome to the DICT Chess Tournament!</div>';
+    chatQuery = db.ref(`${serverDbPrefix}chat/${channel}`).limitToLast(60);
+    chatQuery.on('child_added', snap => {
+      const c = snap.val() || {};
+      const div = document.createElement('div');
+      if (c.pid && c.pid === playerId) div.className = 'me';
+      div.innerHTML = `<b>${escapeHtml(c.name || 'Guest')}:</b> ${escapeHtml(c.text || '')}`;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    });
+  }
+  document.getElementById('chatForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim().slice(0, 300);
+    if (!text) return;
+    const name = playerNameStr || (hostControlsUnlocked ? 'Host' : (isSpectator ? 'Spectator' : 'Guest'));
+    db.ref(`${serverDbPrefix}chat/${chatChannel}`).push({ name, text, pid: playerId || null, ts: firebase.database.ServerValue.TIMESTAMP });
+    input.value = '';
+  });
+
+  // ---------- Match history (leaderboard "View") ----------
+  function openMatchHistory(pid) {
+    const name = allPlayers[pid]?.name || Object.values(allMatches).map(m => m.whiteId === pid ? m.whiteName : m.blackId === pid ? m.blackName : null).find(Boolean) || 'Player';
+    document.getElementById('historyTitle').textContent = 'Match History — ' + name;
+    const list = Object.entries(allMatches).filter(([, m]) => m.whiteId === pid || m.blackId === pid)
+      .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+    document.getElementById('historyBody').innerHTML = list.map(([id, m]) => {
+      const white = m.whiteId === pid;
+      let res = m.status === 'Live' ? '<span class="tag tag-live">● LIVE</span>' : (m.result || m.status || '—');
+      if (m.result === '1/2-1/2') res = 'Draw';
+      else if (m.result === '1-0') res = white ? '<b style="color:#16a34a">Win</b>' : '<b style="color:#e3122d">Loss</b>';
+      else if (m.result === '0-1') res = white ? '<b style="color:#e3122d">Loss</b>' : '<b style="color:#16a34a">Win</b>';
+      return `<tr>
+        <td>#${id.substr(-6).toUpperCase()}${m.isKnockout ? ' <span class="tag tag-knockout">KO</span>' : ''}</td>
+        <td>${escapeHtml(white ? m.blackName : m.whiteName)}</td>
+        <td>${white ? 'White' : 'Black'}</td>
+        <td>${res}${m.forfeitReason ? `<br><small style="color:var(--muted)">${escapeHtml(m.forfeitReason)}</small>` : ''}</td>
+        <td>${m.status === 'Live' ? `<button class="btn sm" onclick="document.getElementById('historyModal').classList.add('hidden'); spectateMatch('${id}')">Watch</button>` : ''}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" style="color:var(--muted)">No matches played yet.</td></tr>';
+    document.getElementById('historyModal').classList.remove('hidden');
+  }
+
+  // ---------- Startup for the new layout ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    idleBoard = Chessboard('idleBoard', { position: 'start', showNotation: false, draggable: false, pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' });
+    renderCoords('idleRanks', 'idleFiles', 'white');
+    renderCoords('rankLabels', 'fileLabels', 'white');
+    setChatChannel('lobby');
+    renderMatchesList();
+    updateLeaderboard();
+    updateGameInfo();
   });
 </script>
 </body>
