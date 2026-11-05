@@ -386,6 +386,21 @@
       .join-card { max-height: none; box-shadow: none; }
       .board-panel { min-height: 0; }
     }
+    /* Access codes, kick, chat lock */
+    .code-inp { text-transform: uppercase; letter-spacing: 3px; font-weight: 800; font-family: 'Roboto Mono', monospace, sans-serif; }
+    .code-status { font-size: .9rem; font-weight: 600; min-height: 1.2em; margin-top: 4px; }
+    .code-status.ok { color: #047857; } .code-status.bad { color: #b4152b; } .code-status.info { color: var(--muted); }
+    .code-chip { font-family: monospace; font-weight: 800; letter-spacing: 1.5px; background: rgba(255,255,255,.1); padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+    .vmark { color: #16a34a; margin-left: 4px; }
+    .navy-panel .vmark { color: #4ade80; }
+    .pill { display: inline-block; font-size: .8rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+    .pill.green { background: rgba(22,163,74,.18); color: #4ade80; } .pill.red { background: rgba(227,18,45,.2); color: #ff8f9b; }
+    .pill.gray { background: rgba(255,255,255,.1); color: #c9d3ea; } .pill.gold { background: rgba(255,194,26,.18); color: #ffd34d; }
+    .chat-lock { margin: 0 14px 14px; padding: 8px 12px; border-radius: 6px; background: rgba(255,194,26,.1); border: 1px solid rgba(255,194,26,.35); color: #ffd97a; font-size: .92rem; text-align: center; }
+    .chat-form input:disabled, .chat-form button:disabled { opacity: .45; cursor: not-allowed; }
+    .chat-msgs .host b { color: var(--gold); }
+    .host-sub { font-size: 1.2rem; font-weight: 800; margin: 18px 0 8px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
+    .host-sub i { color: var(--gold); }
   </style>
 </head>
 <body>
@@ -578,19 +593,20 @@
                           <option value="3">Server 3</option>
                           <option value="4">Server 4</option>
                         </select>
-                        <label class="form-label">Email Address (unique player identity)</label>
-                        <input id="playerEmail" class="inp" type="email" placeholder="you@dict.gov.ph" maxlength="254" autocomplete="email" oninput="checkReturningPlayer(this.value)">
+                        <label class="form-label">Player Access Code <span id="codeReqTag">(from the host)</span></label>
+                        <input id="playerCode" class="inp code-inp" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" spellcheck="false" oninput="onCodeInput(this)">
+                        <div id="codeStatus" class="code-status"></div>
                         <label class="form-label">Display Name</label>
                         <input id="playerName" class="inp" placeholder="Enter your full name or handle" maxlength="40" autocomplete="name">
                         <label class="form-label">DICT Agency / Region / Office</label>
-                        <input id="playerAgency" class="inp" placeholder="e.g. Central Office / Region IVA" maxlength="60">
+                        <input id="playerAgency" class="inp" placeholder="e.g. Central Office / Region IVA" maxlength="60" onkeydown="if(event.key==='Enter') registerPlayer()">
                         <p id="knockoutNoticeText" class="note purple hidden" style="margin: 10px 0 0;">ℹ️ <strong>Knockout / Bracket Mode Active:</strong> Individual matches can be scheduled on different dates.</p>
                         <button class="btn block" style="margin-top: 12px;" onclick="registerPlayer()"><i class="fa-solid fa-right-to-bracket"></i> Enter Waiting Lobby</button>
                         <button class="btn secondary block" style="margin-top: 8px;" onclick="enterSpectatorOnly()"><i class="fa-regular fa-eye"></i> Just Watch (Spectator)</button>
                       </div>
                       <div id="registrationClosedBox" class="note red hidden">
                         <p style="margin: 0 0 6px; font-weight: 800;">🔒 Registration Is Locked</p>
-                        <p style="margin: 0 0 10px; font-size: .9rem;">Late sign-ins are closed. You can watch live matches as a Spectator!</p>
+                        <p id="closedBoxText" style="margin: 0 0 10px; font-size: .9rem;">New sign-ups are closed. Players already registered on this server can still sign in above with their access code.</p>
                         <button class="btn secondary block" onclick="enterSpectatorOnly()">Enter Spectator Mode</button>
                       </div>
                     </div>
@@ -632,6 +648,7 @@
             <input id="chatInput" maxlength="300" placeholder="Type a message...">
             <button type="submit" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
           </form>
+          <div id="chatLockNote" class="chat-lock">🔒 Only registered players can chat.</div>
         </div>
       </section>
 
@@ -728,6 +745,61 @@
             <button class="btn danger" onclick="resetTournamentData()">⚠️ Reset All Data</button>
           </div>
         </div>
+
+        <!-- Access codes + player management -->
+        <div id="hostCodesArea" class="navy-panel page-card hidden">
+          <h2 class="page-title"><i class="fa-solid fa-key"></i> Player Access Codes</h2>
+          <p class="muted" style="margin:-6px 0 12px;">Codes replace email. Each code belongs to one person: the first name and agency used with it are locked to that code, and the player signs in with the same code next time. Players who join with a code are marked <i class="fa-solid fa-circle-check vmark"></i> verified.</p>
+          <div class="stack" style="max-width: 760px;">
+            <div class="timer-box">
+              <span>Require an access code to join:</span>
+              <button id="requireCodeBtn" class="btn sm success" onclick="toggleRequireCode()">ON</button>
+            </div>
+            <div class="grid2">
+              <div>
+                <label class="fld-label" for="codeScope">Code is valid for</label>
+                <select id="codeScope" class="inp">
+                  <option value="server">Individual tournament (this server only)</option>
+                  <option value="all">Whole event (all servers)</option>
+                </select>
+              </div>
+              <div>
+                <label class="fld-label" for="codeCount">How many codes</label>
+                <input id="codeCount" class="inp" type="number" min="1" max="200" value="10">
+              </div>
+            </div>
+            <div>
+              <label class="fld-label" for="codeBatch">Batch label (optional)</label>
+              <input id="codeBatch" class="inp" maxlength="30" placeholder="e.g. Region IV-A, Day 1 Finalists">
+            </div>
+            <div class="grid2">
+              <button class="btn gold" onclick="generateCodes()">🔑 Generate Codes</button>
+              <button class="btn secondary" onclick="downloadCodesCsv()">⬇ Download Unused Codes (CSV)</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:16px 0 8px;">
+            <select id="codeFilter" class="inp" style="max-width:200px; height:38px;" onchange="renderCodesTable()">
+              <option value="all">All codes</option><option value="unused">Unused</option><option value="used">Used</option><option value="revoked">Disabled</option>
+            </select>
+            <span id="codeCounts" class="muted"></span>
+            <button class="btn sm secondary" style="margin-left:auto;" onclick="copyUnusedCodes()">📋 Copy Unused</button>
+          </div>
+          <p class="muted" style="margin:0 0 8px; font-size:.9rem;">Showing codes for Server <span class="codesServerLabel">1</span> plus whole-event codes.</p>
+          <div class="scroll" style="max-height: 380px;">
+            <table class="tbl">
+              <thead><tr><th>Code</th><th>Valid for</th><th>Batch</th><th>Assigned to</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="codesTable"></tbody>
+            </table>
+          </div>
+
+          <div class="host-sub"><i class="fa-solid fa-users"></i> Players on Server <span class="codesServerLabel">1</span></div>
+          <div class="scroll" style="max-height: 420px;">
+            <table class="tbl">
+              <thead><tr><th>Player</th><th>Agency</th><th>Code</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="hostPlayersTable"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- ===================== SETTINGS VIEW ===================== -->
@@ -748,13 +820,16 @@
               </select>
               <p style="color: var(--muted); font-size: .9rem; margin: 6px 0 0;">Each server is a separate tournament with its own players, matches and leaderboard.</p>
             </div>
-            <button class="btn secondary" onclick="if (confirm('Sign out of this device? You can sign back in with the same email.')) location.reload()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out / Restart Session</button>
+            <button class="btn secondary" onclick="if (confirm('Sign out of this device? You can sign back in with your access code.')) { clearSavedSession(); location.reload(); }"><i class="fa-solid fa-right-from-bracket"></i> Sign Out / Restart Session</button>
           </div>
           <h3 style="margin: 22px 0 6px;">Fair Play Rules</h3>
           <ul style="margin:0; color:#2b3a5c; line-height:1.6;">
             <li>Leaving the game tab during a live match gives a strike. 3 strikes = automatic forfeit.</li>
             <li>Missing 3 match prompts removes you from the search queue.</li>
             <li>Win = 1 point, draw = 0.5 points, loss = 0 points.</li>
+            <li>No email is collected. Sign in with the access code from the host, plus your display name and agency.</li>
+            <li>Only registered players (and the host) can send chat messages. Spectators can read along.</li>
+            <li>The host can remove a player from a server. Removed players cannot rejoin that server until the host allows them back.</li>
           </ul>
         </div>
       </section>
@@ -816,7 +891,11 @@
   // Global State Variables
   let playerId = null;
   let playerNameStr = '';
-  let playerEmailStr = '';
+  let requireCode = true;   // accessSettings/requireCode
+  let allCodes = {};        // accessCodes (host only)
+  let codesRef = null;
+  let kickHandled = false;
+  let lastChatAt = 0;
   let isSpectator = false;
   let spectatingMatchId = null;
 
@@ -891,6 +970,8 @@
     lastMatchesListSignature = ''; lastLeaderboardSignature = ''; lastBracketSignature = '';
     renderMatchesList(); updateLeaderboard();
     setChatChannel('lobby');
+    document.querySelectorAll('.codesServerLabel').forEach(el => el.textContent = currentServer);
+    renderCodesTable(); renderHostPlayers();
   }
 
   function detachAllListeners() {
@@ -950,6 +1031,7 @@
     });
     playersRef.on('child_changed', snapshot => {
       allPlayers[snapshot.key] = snapshot.val() || {};
+      if (snapshot.key === playerId && allPlayers[playerId].kicked) handleKicked(allPlayers[playerId].kickReason);
       updateLeaderboard();
       updatePlayerLobbyUI();
       renderBracketView();
@@ -1026,6 +1108,16 @@
   // Initial Listener Setup
   attachServerListeners();
 
+  // Global access-code setting (shared by all servers)
+  db.ref('accessSettings').on('value', snap => {
+    const v = snap.val() || {};
+    requireCode = v.requireCode !== false;
+    const tag = document.getElementById('codeReqTag');
+    if (tag) tag.textContent = requireCode ? '(required — from the host)' : '(optional)';
+    const btn = document.getElementById('requireCodeBtn');
+    if (btn) { btn.textContent = requireCode ? 'ON' : 'OFF'; btn.className = 'btn sm ' + (requireCode ? 'success' : 'secondary'); }
+  });
+
   // ==========================================
   // FAIR PLAY PROTECTION (ALT-TAB PROTECTION)
   // ==========================================
@@ -1067,81 +1159,163 @@
   // ==========================================
   // RETURNING PLAYER AUTO-FILL & ENTRY
   // ==========================================
-  function checkReturningPlayer(emailVal) {
-    const email = emailVal.trim().toLowerCase();
-    if (!email) return;
+  // ---------- Access-code helpers ----------
+  const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0/O, 1/I/L
+  function normCode(v) { return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); }
+  function fmtCode(c) { c = normCode(c); return c.length > 4 ? c.slice(0, 4) + '-' + c.slice(4) : c; }
+  function normKey(v) { return String(v || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+  function codeProblem(rec) {
+    if (!rec) return 'Code not found. Check it again or ask the host for your code.';
+    if (rec.revoked) return 'This code has been disabled by the host.';
+    if (rec.scope === 'server' && String(rec.server) !== String(currentServer)) return `This code is for Server ${rec.server}. Switch to Server ${rec.server} to sign in.`;
+    return '';
+  }
 
-    const existingPlayerKey = Object.keys(allPlayers).find(
-      id => (allPlayers[id].email || '').toLowerCase() === email
-    );
+  let codeLookupTimer = null;
+  function onCodeInput(el) {
+    const raw = normCode(el.value);
+    el.value = fmtCode(raw);
+    const status = document.getElementById('codeStatus');
+    const nameEl = document.getElementById('playerName'), agencyEl = document.getElementById('playerAgency');
+    clearTimeout(codeLookupTimer);
+    if (raw.length < 8) {
+      status.className = 'code-status info';
+      status.textContent = raw.length ? 'Codes have 8 characters.' : '';
+      if (nameEl.disabled) { nameEl.disabled = false; agencyEl.disabled = false; }
+      return;
+    }
+    status.className = 'code-status info';
+    status.textContent = 'Checking code...';
+    codeLookupTimer = setTimeout(() => {
+      db.ref('accessCodes/' + raw).once('value').then(snap => {
+        if (normCode(el.value) !== raw) return;
+        const rec = snap.val();
+        const problem = codeProblem(rec);
+        if (problem) { status.className = 'code-status bad'; status.textContent = '✖ ' + problem; nameEl.disabled = false; agencyEl.disabled = false; return; }
+        if (rec.name) {
+          nameEl.value = rec.name; agencyEl.value = rec.agency || '';
+          nameEl.disabled = true; agencyEl.disabled = true;
+          status.className = 'code-status ok';
+          status.textContent = `✔ Welcome back, ${rec.name}! Your name and agency are locked to this code.`;
+        } else {
+          nameEl.disabled = false; agencyEl.disabled = false;
+          status.className = 'code-status ok';
+          status.textContent = '✔ Valid code. Enter your name and agency — they will be locked to this code.';
+        }
+      }).catch(() => { status.className = 'code-status bad'; status.textContent = 'Could not check the code. Try again.'; });
+    }, 250);
+  }
 
-    if (existingPlayerKey) {
-      const existingPlayer = allPlayers[existingPlayerKey];
-      document.getElementById('playerName').value = existingPlayer.name || '';
-      document.getElementById('playerAgency').value = existingPlayer.agency || '';
+  function savedKey() { return 'chessPid_s' + currentServer; }
+  function clearSavedSession() { try { localStorage.removeItem(savedKey()); localStorage.removeItem('chessCode'); } catch (_) {} }
+  function restoreSavedIdentity() {
+    try {
+      const c = localStorage.getItem('chessCode');
+      const n = localStorage.getItem('chessName'), a = localStorage.getItem('chessAgency');
+      if (n) document.getElementById('playerName').value = n;
+      if (a) document.getElementById('playerAgency').value = a;
+      if (c) { const el = document.getElementById('playerCode'); el.value = c; onCodeInput(el); }
+    } catch (_) {}
+  }
+
+  let registering = false;
+  async function registerPlayer() {
+    if (registering) return;
+    let name = document.getElementById('playerName').value.trim().replace(/\s+/g, ' ');
+    let agency = document.getElementById('playerAgency').value.trim().replace(/\s+/g, ' ');
+    const code = normCode(document.getElementById('playerCode').value);
+
+    if (isTournamentOver()) return alert('The tournament has ended. Registration and games are closed.');
+    if (requireCode && !code) return alert('Please enter the access code given to you by the host.');
+    if (code && code.length !== 8) return alert('Access codes have 8 characters, e.g. K7Q3-XM2P.');
+
+    registering = true;
+    try {
+      let pid = null, verified = false;
+
+      if (code) {
+        const snap = await db.ref('accessCodes/' + code).once('value');
+        const rec = snap.val();
+        const problem = codeProblem(rec);
+        if (problem) return alert(problem);
+        pid = 'p_' + code;
+        verified = true;
+
+        if (isRegistrationLocked && !allPlayers[pid]) return alert('Registration is locked by the host. Only players already registered on this server can sign in.');
+        if (allPlayers[pid]?.kicked) return alert('🚫 You were removed from this server by the host.' + (allPlayers[pid].kickReason ? '\nReason: ' + allPlayers[pid].kickReason : ''));
+
+        if (rec.name) {
+          name = rec.name; agency = rec.agency || '';
+        } else {
+          if (name.length < 2) return alert('Please enter a display name (at least 2 characters).');
+          if (!agency) return alert('Please enter your DICT Agency, Region, or Bureau.');
+          const tx = await db.ref('accessCodes/' + code).transaction(cur => {
+            if (!cur || cur.revoked) return; // abort
+            if (!cur.name) { cur.name = name; cur.agency = agency; cur.pid = pid; cur.claimedAt = Date.now(); }
+            return cur;
+          });
+          if (!tx.committed || !tx.snapshot.val()) return alert('This code could not be used. Please ask the host.');
+          name = tx.snapshot.val().name; agency = tx.snapshot.val().agency || '';
+        }
+      } else {
+        // Codes turned off by the host: fall back to name + agency
+        if (name.length < 2) return alert('Please enter a display name (at least 2 characters).');
+        if (!agency) return alert('Please enter your DICT Agency, Region, or Bureau.');
+        pid = Object.keys(allPlayers).find(id => !allPlayers[id].verified &&
+          normKey(allPlayers[id].name) === normKey(name) && normKey(allPlayers[id].agency) === normKey(agency)) || null;
+        if (isRegistrationLocked && !pid) return alert('Registration is currently locked by the host.');
+        if (pid && allPlayers[pid].kicked) return alert('🚫 You were removed from this server by the host.');
+        if (!pid) pid = 'player_' + Math.random().toString(36).substr(2, 9);
+      }
+
+      let saved = null;
+      try { saved = localStorage.getItem(savedKey()); } catch (_) {}
+      const existing = allPlayers[pid];
+      if (existing && existing.online === true && saved !== pid) {
+        return alert(`${existing.name} is already signed in on another device.\n\nClose the other tab first, or ask the host for help.`);
+      }
+
+      playerId = pid;
+      playerNameStr = name;
+      const ref = db.ref(`${serverDbPrefix}players/` + playerId);
+      if (existing) {
+        ref.update({ name, agency, verified, online: true });
+      } else {
+        ref.set({ name, agency, verified, status: 'idle', missedPrompts: 0, online: true, joinedAt: Date.now() });
+      }
+      try {
+        localStorage.setItem(savedKey(), playerId);
+        localStorage.setItem('chessName', name);
+        localStorage.setItem('chessAgency', agency);
+        if (code) localStorage.setItem('chessCode', fmtCode(code));
+      } catch (_) {}
+
+      isSpectator = false;
+      ref.child('online').onDisconnect().set(false);
+      ref.child('online').set(true);
+
+      document.getElementById('displayName').textContent = playerNameStr;
+      document.getElementById('roleBadge').textContent = (verified ? '✔ Verified Player: ' : 'Player: ') + playerNameStr;
+      document.getElementById('roleBadge').className = 'badge green';
+      document.getElementById('mainArenaPanel').classList.remove('hidden');
+      document.getElementById('authSection').classList.add('hidden');
+
+      updatePlayerLobbyUI();
+      checkPlayerMatchAssignment();
+      updateChatLock();
+    } catch (e) {
+      alert('Sign-in failed: ' + (e && e.message ? e.message : e));
+    } finally {
+      registering = false;
     }
   }
 
-  function registerPlayer() {
-    const nameInput = document.getElementById('playerName');
-    const name = nameInput.value.trim();
-    const emailInput = document.getElementById('playerEmail');
-    const email = emailInput.value.trim().toLowerCase();
-    const agencyInput = document.getElementById('playerAgency');
-    const agency = agencyInput ? agencyInput.value.trim() : '';
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return alert('Please enter a valid email address.');
-    }
-    if (!name) return alert('Please enter a display name.');
-    if (!agency) return alert('Please enter your DICT Agency, Region, or Bureau.');
-
-    if (isTournamentOver()) {
-      return alert('The tournament has ended. Registration and games are closed.');
-    }
-
-    if (isRegistrationLocked) {
-      return alert('Registration is currently locked by the host.');
-    }
-
-    const existingId = Object.keys(allPlayers).find(
-      id => (allPlayers[id].email || '').toLowerCase() === email
-    );
-
-    if (existingId) {
-      playerId = existingId;
-      playerNameStr = name;
-      playerEmailStr = email;
-      db.ref(`${serverDbPrefix}players/` + playerId).update({ name: name, agency: agency, online: true });
-    } else {
-      playerNameStr = name;
-      playerEmailStr = email;
-      playerId = 'player_' + Math.random().toString(36).substr(2, 9);
-      db.ref(`${serverDbPrefix}players/` + playerId).set({
-        name: name,
-        email: email,
-        agency: agency,
-        status: 'idle',
-        missedPrompts: 0,
-        online: true,
-        joinedAt: Date.now()
-      });
-    }
-
-    isSpectator = false;
-
-    const playerRef = db.ref(`${serverDbPrefix}players/` + playerId);
-    playerRef.child('online').onDisconnect().set(false);
-    playerRef.child('online').set(true);
-
-    document.getElementById('displayName').textContent = playerNameStr;
-    document.getElementById('roleBadge').textContent = 'Player: ' + playerNameStr;
-    document.getElementById('roleBadge').className = 'badge green';
-    document.getElementById('mainArenaPanel').classList.remove('hidden');
-    document.getElementById('authSection').classList.add('hidden');
-
-    updatePlayerLobbyUI();
-    checkPlayerMatchAssignment();
+  function handleKicked(reason) {
+    if (kickHandled) return;
+    kickHandled = true;
+    clearSavedSession();
+    alert('🚫 The host has removed you from this server.' + (reason ? '\nReason: ' + reason : ''));
+    location.reload();
   }
 
   function enterSpectatorOnly() {
@@ -1155,6 +1329,7 @@
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('playerActionArea').classList.add('hidden');
     document.getElementById('queueStatusText').textContent = 'Select any active match from the Live Matches panel or Bracket to spectate.';
+    updateChatLock();
   }
 
   function updateSystemStatusUI() {
@@ -1192,6 +1367,7 @@
       }
       openBox.classList.add('hidden');
       closedBox.classList.remove('hidden');
+      document.getElementById('closedBoxText').textContent = 'The tournament has ended. You can still watch matches as a Spectator.';
     } else if (isRegistrationLocked) {
       if (lockToggleBtn) {
         lockToggleBtn.disabled = false;
@@ -1199,8 +1375,9 @@
       }
       statusBadge.textContent = '🔒 Registration Locked';
       statusBadge.className = 'badge red';
-      openBox.classList.add('hidden');
+      openBox.classList.remove('hidden');
       closedBox.classList.remove('hidden');
+      document.getElementById('closedBoxText').textContent = 'New sign-ups are closed. Players already registered on this server can still sign in above with their access code.';
     } else {
       if (lockToggleBtn) {
         lockToggleBtn.disabled = false;
@@ -1352,7 +1529,7 @@
     if (allPlayers[playerId]?.status !== 'searching') return;
 
     const opponentEntry = Object.entries(allPlayers).find(([id, player]) =>
-      id !== playerId && player && player.online === true && player.status === 'searching'
+      id !== playerId && player && player.online === true && player.status === 'searching' && !player.kicked
     );
     if (!opponentEntry) return;
 
@@ -2046,6 +2223,10 @@
     document.getElementById('adminViewLocked').classList.add('hidden');
     document.getElementById('hostPasswordInput').value = '';
     renderBracketView();
+    document.getElementById('hostCodesArea').classList.remove('hidden');
+    attachCodesListener();
+    renderHostPlayers();
+    updateChatLock();
   }
 
   function lockHostControls() {
@@ -2058,6 +2239,10 @@
     document.getElementById('hostUnlockedNotice').classList.add('hidden');
     document.getElementById('adminViewLocked').classList.remove('hidden');
     renderBracketView();
+    document.getElementById('hostCodesArea').classList.add('hidden');
+    if (codesRef) { codesRef.off(); codesRef = null; }
+    allCodes = {};
+    updateChatLock();
   }
 
   function requireHostAccess() {
@@ -2253,6 +2438,8 @@
   // COMPLETE LEADERBOARD
   // ==========================================
   function updateLeaderboard() {
+    renderHostPlayers();
+    updateChatLock();
     let stats = {};
 
     for (let id in allPlayers) {
@@ -2260,7 +2447,8 @@
         id: id,
         name: allPlayers[id].name,
         agency: allPlayers[id].agency || '',
-        email: allPlayers[id].email || '',
+        verified: !!allPlayers[id].verified,
+        kicked: !!allPlayers[id].kicked,
         points: 0,
         played: 0,
         wins: 0,
@@ -2275,8 +2463,8 @@
         const wId = m.whiteId;
         const bId = m.blackId;
 
-        if (!stats[wId]) stats[wId] = { id: wId, name: m.whiteName, agency: '', email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
-        if (!stats[bId]) stats[bId] = { id: bId, name: m.blackName, agency: '', email: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
+        if (!stats[wId]) stats[wId] = { id: wId, name: m.whiteName, agency: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
+        if (!stats[bId]) stats[bId] = { id: bId, name: m.blackName, agency: '', points: 0, played: 0, wins: 0, draws: 0, losses: 0 };
 
         stats[wId].played++;
         stats[bId].played++;
@@ -2307,7 +2495,7 @@
     const row = (p, index, full) => `<tr>
         <td class="rk">${index + 1}</td>
         <td class="md">${medal(index)}</td>
-        <td class="l" title="${escapeHtml(p.agency || '')}">${escapeHtml(p.name)}</td>
+        <td class="l" title="${escapeHtml(p.agency || '')}">${escapeHtml(p.name)}${p.verified ? ' <i class="fa-solid fa-circle-check vmark" title="Verified with access code"></i>' : ''}${p.kicked ? ' <span class="tag tag-done">Removed</span>' : ''}</td>
         ${full ? `<td class="l hide-sm"><small>${escapeHtml(p.agency || '—')}</small></td>` : ''}
         <td><span class="srv-light">S${currentServer}</span></td>
         ${full ? `<td>${p.played}</td>` : ''}
@@ -2537,7 +2725,7 @@
     document.querySelectorAll('[data-view-page]').forEach(el => el.classList.toggle('hidden', el.dataset.viewPage !== name));
     document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
     if (name === 'dashboard') setTimeout(resizeBoards, 0);
-    if (name === 'admin') document.getElementById('adminServerLabel').textContent = currentServer;
+    if (name === 'admin') { document.getElementById('adminServerLabel').textContent = currentServer; document.querySelectorAll('.codesServerLabel').forEach(el => el.textContent = currentServer); }
   }
 
   function togglePw(id, btn) {
@@ -2627,6 +2815,7 @@
   }
   setInterval(() => {
     document.querySelectorAll('[data-live-time]').forEach(el => { el.textContent = liveTimeText(allMatches[el.dataset.liveTime]); });
+    updateChatLock();
   }, 1000);
 
   // ---------- Chat (lobby chat per server, or match chat while playing / watching) ----------
@@ -2642,21 +2831,228 @@
     chatQuery.on('child_added', snap => {
       const c = snap.val() || {};
       const div = document.createElement('div');
-      if (c.pid && c.pid === playerId) div.className = 'me';
-      div.innerHTML = `<b>${escapeHtml(c.name || 'Guest')}:</b> ${escapeHtml(c.text || '')}`;
+      div.className = (c.pid && c.pid === playerId) ? 'me' : (c.role === 'host' ? 'host' : '');
+      const mark = c.role === 'host' ? '👑 ' : '';
+      const ver = c.verified ? ' <i class="fa-solid fa-circle-check vmark" title="Verified player"></i>' : '';
+      const ag = c.agency ? ` <small style="opacity:.7; font-weight:400">(${escapeHtml(c.agency)})</small>` : '';
+      div.innerHTML = `${mark}<b>${escapeHtml(c.name || 'Guest')}${ver}${ag}:</b> ${escapeHtml(c.text || '')}`;
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
     });
   }
+  // Only registered players (not removed) and the unlocked host may chat. Guests/spectators read only.
+  function isActivePlayer() { return !!playerId && !isSpectator && !!allPlayers[playerId] && !allPlayers[playerId].kicked; }
+  function canChat() { return isActivePlayer() || hostControlsUnlocked; }
+  function updateChatLock() {
+    const ok = canChat();
+    const input = document.getElementById('chatInput'), btn = document.querySelector('#chatForm button'), note = document.getElementById('chatLockNote');
+    if (!input || !note) return;
+    input.disabled = !ok; btn.disabled = !ok;
+    input.placeholder = ok ? 'Type a message...' : 'Chat is for registered players only';
+    note.classList.toggle('hidden', ok);
+    note.textContent = isSpectator ? '👁️ Spectators can read the chat. Sign in as a player to join the conversation.'
+      : '🔒 Only registered players can chat. Sign in with your access code first.';
+  }
   document.getElementById('chatForm').addEventListener('submit', e => {
     e.preventDefault();
+    if (!canChat()) { updateChatLock(); return; }
     const input = document.getElementById('chatInput');
     const text = input.value.trim().slice(0, 300);
     if (!text) return;
-    const name = playerNameStr || (hostControlsUnlocked ? 'Host' : (isSpectator ? 'Spectator' : 'Guest'));
-    db.ref(`${serverDbPrefix}chat/${chatChannel}`).push({ name, text, pid: playerId || null, ts: firebase.database.ServerValue.TIMESTAMP });
+    if (Date.now() - lastChatAt < 1500) return; // simple anti-spam
+    lastChatAt = Date.now();
+    const asPlayer = isActivePlayer();
+    const me = asPlayer ? allPlayers[playerId] : {};
+    db.ref(`${serverDbPrefix}chat/${chatChannel}`).push({
+      name: asPlayer ? playerNameStr : 'Host',
+      agency: asPlayer ? (me.agency || '') : '',
+      verified: asPlayer ? !!me.verified : false,
+      role: asPlayer ? 'player' : 'host',
+      pid: asPlayer ? playerId : null,
+      text,
+      ts: firebase.database.ServerValue.TIMESTAMP
+    });
     input.value = '';
   });
+
+  // ==========================================
+  // HOST: ACCESS CODES
+  // ==========================================
+  function attachCodesListener() {
+    if (codesRef) return;
+    codesRef = db.ref('accessCodes');
+    codesRef.on('value', snap => { allCodes = snap.val() || {}; renderCodesTable(); renderHostPlayers(); });
+  }
+
+  function toggleRequireCode() {
+    if (!requireHostAccess()) return;
+    if (requireCode && !confirm('Turn OFF required codes? Players could then join with only a name and agency (not verified).')) return;
+    db.ref('accessSettings').update({ requireCode: !requireCode });
+  }
+
+  function randomCode() {
+    const a = new Uint32Array(8);
+    crypto.getRandomValues(a);
+    return Array.from(a, x => CODE_ALPHABET[x % CODE_ALPHABET.length]).join('');
+  }
+
+  function generateCodes() {
+    if (!requireHostAccess()) return;
+    const count = Math.max(1, Math.min(200, Math.round(Number(document.getElementById('codeCount').value) || 0)));
+    const scope = document.getElementById('codeScope').value === 'all' ? 'all' : 'server';
+    const batch = document.getElementById('codeBatch').value.trim().slice(0, 30);
+    const where = scope === 'all' ? 'the whole event (all servers)' : `Server ${currentServer} only`;
+    if (!confirm(`Generate ${count} new access code(s) valid for ${where}?`)) return;
+    const updates = {}, made = [];
+    while (made.length < count) {
+      const c = randomCode();
+      if (allCodes[c] || updates['accessCodes/' + c]) continue;
+      const rec = { scope, batch, createdAt: Date.now() };
+      if (scope === 'server') rec.server = String(currentServer);
+      updates['accessCodes/' + c] = rec;
+      made.push(c);
+    }
+    db.ref().update(updates, err => {
+      if (err) return alert('Could not create codes: ' + err.message);
+      document.getElementById('codeFilter').value = 'unused';
+      renderCodesTable();
+      alert(`🔑 ${made.length} code(s) created for ${where}.\n\nUse "Copy Unused" or "Download Unused Codes" to hand them out — one code per player.`);
+    });
+  }
+
+  function codesForThisServer() {
+    return Object.entries(allCodes)
+      .filter(([, r]) => r && (r.scope === 'all' || String(r.server) === String(currentServer)))
+      .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0) || a[0].localeCompare(b[0]));
+  }
+  function codeState(r) { return r.revoked ? 'revoked' : (r.name ? 'used' : 'unused'); }
+  function scopeLabel(r) { return r.scope === 'all' ? 'Whole event' : `Server ${r.server}`; }
+
+  function renderCodesTable() {
+    const tb = document.getElementById('codesTable');
+    if (!tb || !hostControlsUnlocked) return;
+    const list = codesForThisServer();
+    const f = document.getElementById('codeFilter').value;
+    const counts = { unused: 0, used: 0, revoked: 0 };
+    list.forEach(([, r]) => counts[codeState(r)]++);
+    document.getElementById('codeCounts').textContent = `${counts.unused} unused · ${counts.used} used · ${counts.revoked} disabled`;
+    const rows = list.filter(([, r]) => f === 'all' || codeState(r) === f).map(([c, r]) => {
+      const st = codeState(r);
+      const pill = st === 'used' ? '<span class="pill green">Used</span>' : st === 'revoked' ? '<span class="pill red">Disabled</span>' : '<span class="pill gray">Unused</span>';
+      const who = r.name ? `<strong>${escapeHtml(r.name)}</strong><br><small class="muted">${escapeHtml(r.agency || '')}</small>` : '<span class="muted">—</span>';
+      const actions = [`<button class="btn sm secondary" onclick="copyText('${fmtCode(c)}')" title="Copy">📋</button>`,
+        r.revoked ? `<button class="btn sm success" onclick="setCodeRevoked('${c}', false)">Enable</button>`
+                  : `<button class="btn sm danger" onclick="setCodeRevoked('${c}', true)">Disable</button>`];
+      if (st === 'unused') actions.push(`<button class="btn sm secondary" onclick="deleteCode('${c}')" title="Delete">🗑</button>`);
+      return `<tr><td><span class="code-chip">${fmtCode(c)}</span></td><td>${scopeLabel(r)}</td><td>${escapeHtml(r.batch || '')}</td><td>${who}</td><td>${pill}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
+    });
+    tb.innerHTML = rows.join('') || '<tr><td colspan="6" class="muted">No codes yet. Generate some above.</td></tr>';
+  }
+
+  function setCodeRevoked(c, revoked) {
+    if (!requireHostAccess()) return;
+    if (revoked && !confirm(`Disable code ${fmtCode(c)}? Its player will not be able to sign in with it.`)) return;
+    db.ref('accessCodes/' + c).update({ revoked: revoked ? true : null });
+  }
+  function deleteCode(c) {
+    if (!requireHostAccess()) return;
+    if (!confirm(`Delete unused code ${fmtCode(c)}?`)) return;
+    db.ref('accessCodes/' + c).remove();
+  }
+
+  function unusedCodes() { return codesForThisServer().filter(([, r]) => codeState(r) === 'unused'); }
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => {}, () => prompt('Copy this:', t));
+    else prompt('Copy this:', t);
+  }
+  function copyUnusedCodes() {
+    if (!requireHostAccess()) return;
+    const list = unusedCodes();
+    if (!list.length) return alert('No unused codes.');
+    copyText(list.map(([c, r]) => `${fmtCode(c)}  (${scopeLabel(r)}${r.batch ? ' · ' + r.batch : ''})`).join('\n'));
+    alert(`📋 ${list.length} unused code(s) copied.`);
+  }
+  function downloadCodesCsv() {
+    if (!requireHostAccess()) return;
+    const list = unusedCodes();
+    if (!list.length) return alert('No unused codes to download.');
+    const esc = v => '"' + String(v || '').replace(/"/g, '""') + '"';
+    const csv = 'Code,Valid For,Batch,Player Name (fill in),Agency (fill in)\n' + list.map(([c, r]) => [fmtCode(c), scopeLabel(r), r.batch, '', ''].map(esc).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `chess-access-codes-server${currentServer}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // ==========================================
+  // HOST: PLAYERS + KICK
+  // ==========================================
+  function codeForPlayer(pid) {
+    if (pid && pid.startsWith('p_')) return pid.slice(2);
+    const hit = Object.entries(allCodes).find(([, r]) => r && r.pid === pid);
+    return hit ? hit[0] : '';
+  }
+
+  function renderHostPlayers() {
+    const tb = document.getElementById('hostPlayersTable');
+    if (!tb || !hostControlsUnlocked) return;
+    const list = Object.entries(allPlayers).filter(([, p]) => p && p.name)
+      .sort((a, b) => (!!a[1].kicked - !!b[1].kicked) || (!!b[1].online - !!a[1].online) || String(a[1].name).localeCompare(String(b[1].name)));
+    tb.innerHTML = list.map(([id, p]) => {
+      const code = codeForPlayer(id);
+      let st;
+      if (p.kicked) st = '<span class="pill red">Removed</span>';
+      else if (!p.online) st = '<span class="pill gray">Offline</span>';
+      else if (p.status === 'in-game') st = '<span class="pill gold">In game</span>';
+      else st = `<span class="pill green">${p.status === 'searching' ? 'Searching' : 'Online'}</span>`;
+      const act = p.kicked
+        ? `<button class="btn sm success" onclick="unkickPlayer('${id}')">Allow back</button>`
+        : `<button class="btn sm danger" onclick="kickPlayer('${id}')">🚫 Kick</button>`;
+      return `<tr><td><strong>${escapeHtml(p.name)}</strong>${p.verified ? ' <i class="fa-solid fa-circle-check vmark" title="Verified"></i>' : ''}${p.kickReason ? `<br><small class="muted">${escapeHtml(p.kickReason)}</small>` : ''}</td>
+        <td>${escapeHtml(p.agency || '—')}</td>
+        <td>${code ? `<span class="code-chip">${fmtCode(code)}</span>` : '<span class="muted">none</span>'}</td>
+        <td>${st}</td><td>${act}</td></tr>`;
+    }).join('') || '<tr><td colspan="5" class="muted">No players on this server yet.</td></tr>';
+  }
+
+  function kickPlayer(pid) {
+    if (!requireHostAccess()) return;
+    const p = allPlayers[pid];
+    if (!p) return;
+    const reason = prompt(`Remove "${p.name}" (${p.agency || 'no agency'}) from Server ${currentServer}?\n\nOptional reason shown to the player:`, '');
+    if (reason === null) return;
+    const code = codeForPlayer(pid);
+    const alsoDisable = code && allCodes[code] && !allCodes[code].revoked &&
+      confirm(`Also disable their access code ${fmtCode(code)}? (They won't be able to sign in on any server.)`);
+
+    const updates = {};
+    const base = `${serverDbPrefix}players/${pid}/`;
+    updates[base + 'kicked'] = true;
+    updates[base + 'kickReason'] = reason.trim().slice(0, 100) || null;
+    updates[base + 'kickedAt'] = Date.now();
+    updates[base + 'status'] = 'idle';
+    updates[base + 'online'] = false;
+    Object.entries(allMatches).forEach(([id, m]) => {
+      if (m && m.status === 'Live' && (m.whiteId === pid || m.blackId === pid)) {
+        updates[`${serverDbPrefix}matches/${id}/status`] = 'Completed';
+        updates[`${serverDbPrefix}matches/${id}/result`] = m.whiteId === pid ? '0-1' : '1-0';
+        updates[`${serverDbPrefix}matches/${id}/forfeitReason`] = `${p.name} removed by host`;
+      }
+    });
+    if (alsoDisable) updates['accessCodes/' + code + '/revoked'] = true;
+    db.ref().update(updates, err => alert(err ? 'Kick failed: ' + err.message : `🚫 ${p.name} was removed from Server ${currentServer}.`));
+  }
+
+  function unkickPlayer(pid) {
+    if (!requireHostAccess()) return;
+    const p = allPlayers[pid];
+    if (!p || !confirm(`Allow "${p.name}" back on Server ${currentServer}?`)) return;
+    const base = `${serverDbPrefix}players/${pid}/`;
+    const updates = { [base + 'kicked']: null, [base + 'kickReason']: null, [base + 'kickedAt']: null };
+    const code = codeForPlayer(pid);
+    if (code && allCodes[code]?.revoked && confirm(`Their code ${fmtCode(code)} is disabled. Enable it again?`)) updates['accessCodes/' + code + '/revoked'] = null;
+    db.ref().update(updates);
+  }
 
   // ---------- Match history (leaderboard "View") ----------
   function openMatchHistory(pid) {
@@ -2690,6 +3086,8 @@
     renderMatchesList();
     updateLeaderboard();
     updateGameInfo();
+    restoreSavedIdentity();
+    updateChatLock();
   });
 </script>
 </body>
