@@ -2229,7 +2229,9 @@
       // Rough estimate of time already spent before this device saw the position
       // (capped at 3 s so a device with a wrong date/time can't take time off anyone's clock)
       const est = m.lastMoveAt ? Math.max(0, (nowMs() - Number(m.lastMoveAt)) / 1000) : 0;
-      a = clockAnchors[id] = { fen: m.fen, t0: performance.now(), e0: Math.min(est, 3), cap: Math.min(est, 3) };
+      // First sight (e.g. after a reload): at most 3 s of the estimate. A live position counts from arrival.
+      const e0 = (a || Number(m.lastMoveAt) === Number(m.createdAt)) ? 0 : Math.min(est, 3);  // brand-new game: start at 0
+      a = clockAnchors[id] = { fen: m.fen, t0: performance.now(), e0, cap: e0 };
     }
     return a;
   }
