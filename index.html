@@ -2061,11 +2061,19 @@
     const now = nowMs();
     const initialSeconds = tc === '10+5' ? 600 : 180;
 
+    // Colours: whoever has played White fewer times gets White; if equal, a coin flip.
+    // (p1 is always the player whose ID sorts first, so using p1 as White made one player White every game.)
+    const whiteCount = id => Object.values(allMatches).filter(m => m && m.whiteId === id).length;
+    const blackCount = id => Object.values(allMatches).filter(m => m && m.blackId === id).length;
+    const bal1 = whiteCount(p1Id) - blackCount(p1Id), bal2 = whiteCount(p2Id) - blackCount(p2Id);
+    const p1White = bal1 !== bal2 ? bal1 < bal2 : Math.random() < 0.5;
+    const [wId, wName, bId, bName] = p1White ? [p1Id, p1Name, p2Id, p2Name] : [p2Id, p2Name, p1Id, p1Name];
+
     const matchPayload = {
-      whiteId: p1Id,
-      whiteName: p1Name,
-      blackId: p2Id,
-      blackName: p2Name,
+      whiteId: wId,
+      whiteName: wName,
+      blackId: bId,
+      blackName: bName,
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       whiteTime: initialSeconds,
       blackTime: initialSeconds,
